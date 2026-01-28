@@ -1,0 +1,8 @@
+
+html, body { height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+body { background-color: rgb(91, 109, 117);}
+canvas { border: 1px solid #000; background-color: #0345a2; }
