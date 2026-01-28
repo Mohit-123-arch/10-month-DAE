@@ -5,4 +5,32 @@ html, body { height: 100%;
   font-family: Arial, sans-serif;
 }
 body { background-color: rgb(91, 109, 117);}
-canvas { border: 1px solid #000; background-color: #0345a2; }
+h1 {
+  color: rgb(185, 84, 84);
+  font-size: 3rem;
+  margin: 0;
+}
+body h1 {
+  text-align: center;
+  margin-top: 2rem;
+}
+body p {
+  text-align: center;
+  font-size: 1.5rem;
+  color: rgb(175, 125, 125);
+  margin-top: 0.5rem;
+  margin-bottom: 2rem;
+}
+body main {
+    text-align: left;
+    font-size: 1.25rem;
+    color: rgb(195, 168, 105);
+    margin: 1.5rem 0;
+}
+body footer {
+    text-align: left;
+    font-size: 1.1rem;
+    color: rgb(236, 29, 29);
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+}
