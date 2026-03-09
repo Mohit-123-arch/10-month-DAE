@@ -1,14 +1,16 @@
 
-html, body { height: 100%;
+html, body { height: 50%;
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
 }
-body { background-color: rgb(91, 109, 117);}
+
+body { background-color:#52296b;}
 header {
-  color: rgb(185, 84, 84);
+  color: rgb(248, 248, 248);
   font-size: 3rem;
   margin: 0;
+ background-color: rgb(49, 2, 114);
 }
 body header {
   text-align: center;
@@ -19,6 +21,7 @@ body footer {
   font-size: 1.5rem;
   margin-top: 0.5rem;
   margin-bottom: 2rem;
+  color: rgb(255, 255, 255);
 }
 body main {
     text-align: left;
@@ -26,13 +29,20 @@ body main {
     color: rgb(195, 168, 105);
     margin: 1.5rem 0;
 }
-img{
-    margin: 125px;
-    margin-top: 2rem;
+#image1{
     width: 200px;
     height: 200px;
     border-radius: 10%;
     border-width: 10px;
     border-style: solid;
-    border-color: black;
+    border-color: rgb(236, 236, 236);
+}
+
+#image2{
+    width: 200px;
+    height: 200px;
+    border-radius: 10%;
+    border-width: 10px;
+    border-style: solid;
+    border-color: rgb(236, 236, 236);
 }

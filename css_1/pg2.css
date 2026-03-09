@@ -10,7 +10,12 @@ h1 {
   margin: 0;
   text-align: center;
 }
-
+main {
+    margin: 10px;
+    font-size: 1.25rem;
+    color: rgb(0, 0, 0);
+    margin: 1.5rem 0;
+}
 
 img{
     margin: 350px;
@@ -20,5 +25,16 @@ img{
     border-radius: 10%;
     border-width: 10px;
     border-style: solid;
-    border-color: black;
+    border-color: rgb(161, 156, 156);
+}
+
+
+#backToHome{
+    background-color: beige;
+    color: black;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    
 }

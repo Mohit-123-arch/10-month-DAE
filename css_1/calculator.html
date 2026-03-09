@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculator</title>
+</head>
+<body>
+
+  <h2>Calculator</h2>
+
+  <input type="number" id="a" placeholder="A" />
+  <input type="number" id="b" placeholder="B" />
+
+  <br><br>
+
+  <button onclick="calc('+')">A + B</button>
+  <button onclick="calc('-')">A - B</button>
+  <button onclick="calc('*')">A * B</button>
+  <button onclick="calc('/')">A / B</button>
+
+  <br><br>
+
+  <button onclick="calc('and')">A AND B</button>
+  <button onclick="calc('or')">A OR B</button>
+  <button onclick="calcNot()">NOT A</button>
+
+  <br><br>
+
+  <strong>Result: <span id="result">—</span></strong>
+
+  <script src="calculator.js"></script>
+
+</body>
+</html>
