@@ -1,0 +1,40 @@
+html, body { height: 100%;  
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+body { background-color: rgb(48, 120, 151);}
+h1 {
+  color: rgb(0, 0, 0);
+  font-size: 3rem;
+  margin: 0;
+  text-align: center;
+}
+main {
+    margin: 10px;
+    font-size: 1.25rem;
+    color: rgb(0, 0, 0);
+    margin: 1.5rem 0;
+}
+
+img{
+    margin: 350px;
+    margin-top: -6px;
+    width: 500px;
+    height: 500px;
+    border-radius: 10%;
+    border-width: 10px;
+    border-style: solid;
+    border-color: rgb(161, 156, 156);
+}
+
+
+#backToHome{
+    background-color: beige;
+    color: black;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    
+}

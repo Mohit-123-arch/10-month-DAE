@@ -1,0 +1,21 @@
+html, body { height: 100%;  
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+body { background-color: rgb(13, 106, 2);}
+h1 {
+  color: rgb(18, 10, 10);
+  font-size: 3rem;
+  margin: 0;
+}
+img{
+    margin: 250px;
+    margin-top: 2rem;
+    width: 500px;
+    height: 500px;
+    border-radius: 10%;
+    border-width: 10px;
+    border-style: solid;
+    border-color: rgb(18, 10, 10);
+}
