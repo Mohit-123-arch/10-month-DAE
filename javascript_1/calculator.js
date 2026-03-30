@@ -1,3 +1,17 @@
+function goHome() {
+  window.location.href = 'landingpage.html';
+}
+
+// Creates and adds the home button to the page
+function createHomeButton() {
+  var homeButton = document.createElement('button');
+  homeButton.textContent = '🏠 Home';
+  homeButton.onclick = goHome;
+  document.body.appendChild(homeButton);
+}
+
+// Run when the page loads
+window.onload = createHomeButton;
 
 function getValues() {
   var number1 = parseInt(document.getElementById('a').value);
@@ -21,22 +35,5 @@ function calc(operator) {
   else if (operator === 'or')    { result = number1 | number2; }
 
   document.getElementById('result').textContent = result;
-}
-function calc(operator) {
-  var values = getValues();
-  var number1 = values.a;
-  var number2 = values.b;
-  var result;
-
-  if (isNaN(number1) || isNaN(number2)) {
-    result = "Please enter values for A and B";
-  } else if (operator === '+')   { result = number1 + number2; }
-  else if (operator === '-')     { result = number1 - number2; }
-  else if (operator === '*')     { result = number1 * number2; }
-  else if (operator === '/')     { result = number2 !== 0 ? number1 / number2 : "Can't divide by zero"; }
-  else if (operator === 'and')   { result = number1 & number2; }
-  else if (operator === 'or')    { result = number1 | number2; }
-
-  document.getElementById('result').textContent = result;
-  console.log("Result: " + result);  // <-- add this
+  console.log("Result: " + result);
 }

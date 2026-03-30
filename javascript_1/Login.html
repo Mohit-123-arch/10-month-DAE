@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NEOPLAY — Next-Gen Gaming Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --neon: #00ffb4;
+      --pink: #ff2d78;
+      --bg: #060810;
+      --card: #0a0e1e;
+      --text: #e0e8ff;
+      --muted: rgba(200,220,255,0.4);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(0,255,180,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,180,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background: repeating-linear-gradient(
+        0deg, transparent, transparent 2px,
+        rgba(0,255,200,0.012) 2px, rgba(0,255,200,0.012) 4px
+      );
+      pointer-events: none;
+    }
+
+    .page { display: none; position: relative; z-index: 1; min-height: 100vh; }
+    .page.active { display: block; }
+
+    /* NAV */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 40px;
+      border-bottom: 1px solid rgba(0,255,180,0.15);
+      background: rgba(6,8,16,0.92);
+      backdrop-filter: blur(10px);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-logo {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900; font-size: 22px;
+      color: var(--neon); letter-spacing: 4px;
+      text-shadow: 0 0 24px rgba(0,255,180,0.5);
+    }
+    .nav-logo span { color: var(--pink); }
+    .nav-links { display: flex; gap: 28px; font-size: 12px; letter-spacing: 1px; }
+    .nav-links a { color: var(--muted); text-decoration: none; transition: color 0.2s; cursor: pointer; }
+    .nav-links a:hover, .nav-links a.active { color: var(--neon); }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .nav-btn {
+      background: transparent; border: 1px solid rgba(0,255,180,0.35);
+      color: var(--neon); padding: 8px 20px;
+      font-family: 'Share Tech Mono', monospace; font-size: 12px;
+      letter-spacing: 1px; cursor: pointer; transition: all 0.2s;
+    }
+    .nav-btn:hover { background: rgba(0,255,180,0.1); border-color: var(--neon); }
+    .nav-user { display: flex; align-items: center; gap: 10px; }
+    .avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--neon), var(--pink));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: var(--bg);
+    }
+    .username { font-size: 12px; color: var(--neon); letter-spacing: 1px; }
+
+    /* LOGIN PAGE */
+    #login-page { display: flex; flex-direction: column; }
+    .login-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 40px; border-bottom: 1px solid rgba(0,255,180,0.1);
+    }
+    .login-body {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 60px 20px;
+    }
+    .login-card {
+      width: 100%; max-width: 420px;
+      background: rgba(10,14,30,0.96);
+      border: 1px solid rgba(0,255,180,0.2);
+      padding: 48px 40px; position: relative;
+    }
+    .login-card::before {
+      content: ''; position: absolute;
+      top: -1px; left: 15%; right: 15%; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--neon), var(--pink), transparent);
+    }
+    .login-logo {
+      text-align: center; font-family: 'Orbitron', monospace;
+      font-weight: 900; font-size: 30px; color: var(--neon);
+      letter-spacing: 5px; text-shadow: 0 0 30px rgba(0,255,180,0.4); margin-bottom: 6px;
+    }
+    .login-logo span { color: var(--pink); }
+    .login-tagline {
+      text-align: center; font-size: 11px;
+      color: rgba(200,220,255,0.3); letter-spacing: 2px; margin-bottom: 36px;
+    }
+    .login-heading {
+      text-align: center; font-family: 'Orbitron', monospace;
+      font-size: 13px; letter-spacing: 2px; color: var(--text); margin-bottom: 28px;
+    }
+    .social-btn {
+      width: 100%; display: flex; align-items: center; justify-content: center;
+      gap: 10px; padding: 13px; margin-bottom: 10px;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(200,220,255,0.15);
+      color: #c8d4ff; font-family: 'Share Tech Mono', monospace;
+      font-size: 13px; letter-spacing: 1px; cursor: pointer; transition: all 0.2s;
+    }
+    .social-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(200,220,255,0.35); color: #fff; }
+    .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+    .divider-line { flex: 1; height: 1px; background: rgba(200,220,255,0.1); }
+    .divider-text { font-size: 11px; color: rgba(200,220,255,0.3); letter-spacing: 2px; }
+    .input-group { margin-bottom: 14px; }
+    .input-group label { display: block; font-size: 11px; color: rgba(0,255,180,0.6); letter-spacing: 2px; margin-bottom: 6px; }
+    .gamer-input {
+      width: 100%; padding: 12px 14px;
+      background: rgba(0,0,0,0.4); border: 1px solid rgba(0,255,180,0.15);
+      color: var(--text); font-family: 'Share Tech Mono', monospace;
+      font-size: 14px; outline: none; transition: border-color 0.2s;
+    }
+    .gamer-input:focus { border-color: rgba(0,255,180,0.5); background: rgba(0,0,0,0.6); }
+    .gamer-input::placeholder { color: rgba(200,220,255,0.2); }
+    .login-btn {
+      width: 100%; padding: 14px;
+      background: linear-gradient(90deg, var(--neon), #00d4ff);
+      border: none; color: var(--bg);
+      font-family: 'Orbitron', monospace; font-size: 13px;
+      font-weight: 700; letter-spacing: 2px; cursor: pointer;
+      margin-top: 8px; transition: all 0.2s;
+    }
+    .login-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .login-btn:active { transform: translateY(0); }
+    .err-msg { font-size: 12px; color: var(--pink); letter-spacing: 1px; margin-top: 8px; display: none; }
+    .login-footer { text-align: center; margin-top: 24px; font-size: 12px; color: rgba(200,220,255,0.3); }
+    .login-footer a { color: var(--neon); cursor: pointer; text-decoration: none; }
+    .login-footer a:hover { text-decoration: underline; }
+
+    /* HOME PAGE */
+    .hero {
+      padding: 70px 40px 56px;
+      border-bottom: 1px solid rgba(0,255,180,0.08);
+    }
+    .hero-eyebrow { font-size: 11px; color: var(--neon); letter-spacing: 4px; margin-bottom: 14px; opacity: 0.7; }
+    .hero-title { font-family: 'Orbitron', monospace; font-size: clamp(32px, 6vw, 60px); font-weight: 900; line-height: 1.05; margin-bottom: 18px; }
+    .hero-title .c1 { color: var(--neon); text-shadow: 0 0 40px rgba(0,255,180,0.3); }
+    .hero-title .c2 { color: var(--pink); text-shadow: 0 0 40px rgba(255,45,120,0.3); }
+    .hero-sub { font-size: 14px; color: var(--muted); max-width: 500px; line-height: 1.8; margin-bottom: 32px; }
+    .hero-cta { display: flex; gap: 14px; flex-wrap: wrap; }
+    .btn-primary {
+      padding: 13px 30px; background: var(--neon); border: none;
+      color: var(--bg); font-family: 'Orbitron', monospace;
+      font-size: 12px; font-weight: 700; letter-spacing: 2px; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-primary:hover { background: #00e0a0; transform: translateY(-2px); }
+    .btn-ghost {
+      padding: 13px 30px; background: transparent;
+      border: 1px solid rgba(0,255,180,0.3); color: var(--neon);
+      font-family: 'Orbitron', monospace; font-size: 12px;
+      letter-spacing: 2px; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-ghost:hover { background: rgba(0,255,180,0.08); border-color: var(--neon); }
+    .section { padding: 44px 40px; }
+    .section + .section { border-top: 1px solid rgba(0,255,180,0.06); }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .section-title { font-family: 'Orbitron', monospace; font-size: 13px; letter-spacing: 3px; color: var(--text); }
+    .section-more { font-size: 12px; color: rgba(0,255,180,0.45); cursor: pointer; letter-spacing: 1px; transition: color 0.2s; }
+    .section-more:hover { color: var(--neon); }
+    .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+    .game-card {
+      background: var(--card); border: 1px solid rgba(0,255,180,0.1);
+      cursor: pointer; transition: all 0.25s; position: relative; overflow: hidden;
+    }
+    .game-card:hover { border-color: rgba(0,255,180,0.45); transform: translateY(-4px); box-shadow: 0 8px 32px rgba(0,255,180,0.08); }
+    .game-card:hover .play-overlay { opacity: 1; }
+    .game-thumb { height: 114px; display: flex; align-items: center; justify-content: center; font-size: 40px; position: relative; }
+    .play-overlay {
+      position: absolute; inset: 0; background: rgba(0,255,180,0.13);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.2s;
+      font-family: 'Orbitron', monospace; font-size: 12px; color: var(--neon); letter-spacing: 2px;
+    }
+    .game-info { padding: 12px 14px; }
+    .game-name { font-size: 13px; color: var(--text); margin-bottom: 4px; }
+    .game-genre { font-size: 11px; color: rgba(200,220,255,0.3); }
+    .game-badge { position: absolute; top: 8px; right: 8px; font-size: 9px; padding: 3px 8px; letter-spacing: 1px; }
+    .badge-hot { background: rgba(255,45,120,0.2); border: 1px solid rgba(255,45,120,0.4); color: var(--pink); }
+    .badge-new { background: rgba(0,255,180,0.15); border: 1px solid rgba(0,255,180,0.4); color: var(--neon); }
+
+    /* AUTH GATE MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(4,6,14,0.88);
+      display: none; align-items: center; justify-content: center;
+      backdrop-filter: blur(6px);
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+      background: #060c1c; border: 1px solid rgba(0,255,180,0.25);
+      width: 90%; max-width: 390px; padding: 40px 36px;
+      position: relative; text-align: center;
+    }
+    .modal-box::before {
+      content: ''; position: absolute;
+      top: -1px; left: 10%; right: 10%; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--pink), var(--neon), transparent);
+    }
+    .modal-eyebrow { font-size: 11px; color: rgba(0,255,180,0.5); letter-spacing: 3px; margin-bottom: 10px; }
+    .modal-title { font-family: 'Orbitron', monospace; font-size: 20px; color: #fff; margin-bottom: 10px; font-weight: 700; }
+    .modal-desc { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 30px; }
+    .modal-desc strong { color: var(--neon); font-weight: normal; }
+    .modal-actions { display: flex; flex-direction: column; gap: 10px; }
+    .modal-login-btn {
+      padding: 14px; background: linear-gradient(90deg, var(--neon), #00d4ff);
+      border: none; color: var(--bg); font-family: 'Orbitron', monospace;
+      font-size: 12px; font-weight: 700; letter-spacing: 2px; cursor: pointer;
+    }
+    .modal-login-btn:hover { opacity: 0.9; }
+    .modal-signup-btn {
+      padding: 14px; background: transparent; border: 1px solid rgba(0,255,180,0.25);
+      color: var(--neon); font-family: 'Share Tech Mono', monospace;
+      font-size: 12px; letter-spacing: 2px; cursor: pointer; transition: background 0.2s;
+    }
+    .modal-signup-btn:hover { background: rgba(0,255,180,0.07); }
+    .modal-close {
+      position: absolute; top: 14px; right: 18px;
+      background: none; border: none; color: rgba(200,220,255,0.3);
+      font-size: 20px; cursor: pointer; font-family: monospace;
+    }
+    .modal-close:hover { color: #fff; }
+
+    /* TOAST */
+    .toast {
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,255,180,0.12); border: 1px solid rgba(0,255,180,0.35);
+      color: var(--neon); padding: 12px 28px; font-size: 12px; letter-spacing: 1px;
+      z-index: 400; display: none; white-space: nowrap;
+      animation: fadeup 0.3s ease forwards;
+    }
+    @keyframes fadeup {
+      from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    @media (max-width: 600px) {
+      nav, .login-nav { padding: 14px 20px; }
+      .hero { padding: 48px 20px 40px; }
+      .section { padding: 32px 20px; }
+      .login-card { padding: 36px 24px; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN PAGE -->
+  <div id="login-page" class="page active">
+    <div class="login-nav">
+      <div class="nav-logo">NEO<span>PLAY</span></div>
+      <button class="nav-btn" onclick="showSignup()">CREATE ACCOUNT</button>
+    </div>
+    <div class="login-body">
+      <div class="login-card">
+        <div class="login-logo">NEO<span>PLAY</span></div>
+        <div class="login-tagline">// NEXT-GEN GAMING PORTAL //</div>
+        <div class="login-heading">LOG INTO YOUR ACCOUNT</div>
+
+        <button class="social-btn" onclick="handleSocialLogin('Google')">
+          <svg width="16" height="16" viewBox="0 0 24 24">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          LOGIN WITH GOOGLE
+        </button>
+
+        <button class="social-btn" onclick="handleSocialLogin('Apple')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09z"/>
+            <path d="M15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.56-1.701"/>
+          </svg>
+          LOGIN WITH APPLE
+        </button>
+
+        <div class="divider">
+          <div class="divider-line"></div>
+          <span class="divider-text">OR</span>
+          <div class="divider-line"></div>
+        </div>
+
+        <div class="input-group">
+          <label>EMAIL ADDRESS</label>
+          <input class="gamer-input" type="email" id="login-email" placeholder="player@neoplay.gg" />
+        </div>
+        <div class="input-group">
+          <label>PASSWORD</label>
+          <input class="gamer-input" type="password" id="login-pass" placeholder="••••••••••" />
+        </div>
+        <div class="err-msg" id="login-err">// INVALID CREDENTIALS — TRY AGAIN</div>
+
+        <button class="login-btn" onclick="handleEmailLogin()">LAUNCH SESSION →</button>
+
+        <div class="login-footer">
+          <a href="#">FORGOT PASSWORD?</a> &nbsp;|&nbsp;
+          New player? <a href="#" onclick="showSignup()">SIGN UP FREE</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOME PAGE -->
+  <div id="home-page" class="page">
+    <nav>
+      <div class="nav-logo">NEO<span>PLAY</span></div>
+      <div class="nav-links">
+        <a class="active">HOME</a>
+        <a>LIBRARY</a>
+        <a>STORE</a>
+        <a>LEADERBOARD</a>
+      </div>
+      <div class="nav-right">
+        <div class="nav-user">
+          <span class="username" id="username-display">PLAYER_01</span>
+          <div class="avatar" id="user-avatar">P</div>
+        </div>
+        <button class="nav-btn" onclick="doLogout()">LOGOUT</button>
+      </div>
+    </nav>
+
+    <div class="hero">
+      <div class="hero-eyebrow">// FEATURED THIS WEEK</div>
+      <div class="hero-title">
+        ENTER THE<br>
+        <span class="c1">NEON</span> <span class="c2">GRID</span>
+      </div>
+      <div class="hero-sub">
+        The most advanced cyberpunk action-RPG of 2025.
+        Play free for 2 hours — no card required. Join 4 million players worldwide.
+      </div>
+      <div class="hero-cta">
+        <button class="btn-primary" onclick="handlePlay('Neon Grid')">▶ PLAY NOW — FREE</button>
+        <button class="btn-ghost">VIEW DETAILS</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-title">// FEATURED GAMES</span>
+        <span class="section-more">VIEW ALL →</span>
+      </div>
+      <div class="games-grid" id="featured-grid"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <span class="section-title">// NEW RELEASES</span>
+        <span class="section-more">SEE MORE →</span>
+      </div>
+      <div class="games-grid" id="new-grid"></div>
+    </div>
+  </div>
+
+  <!-- AUTH GATE MODAL -->
+  <div class="modal-overlay" id="auth-modal">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-eyebrow" id="modal-eyebrow">// NEON GRID</div>
+      <div class="modal-title">READY TO PLAY?</div>
+      <div class="modal-desc">
+        Create a free account to start playing
+        <strong id="modal-game-name">Neon Grid</strong>
+        and 200+ other games instantly.
+      </div>
+      <div class="modal-actions">
+        <button class="modal-login-btn" onclick="goToLogin()">LOG IN TO PLAY</button>
+        <button class="modal-signup-btn" onclick="showSignup()">CREATE FREE ACCOUNT</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const featuredGames = [
+      { name: 'Void Protocol',   genre: 'ACTION RPG',  icon: '⚔️',  badge: 'hot', bg: '#0d1428' },
+      { name: 'Circuit Breaker', genre: 'STRATEGY',    icon: '🔌',  badge: 'new', bg: '#0a1a14' },
+      { name: 'Phantom OS',      genre: 'STEALTH',     icon: '👁',  badge: '',    bg: '#140a28' },
+      { name: 'Data Heist',      genre: 'HEIST SIM',   icon: '💾',  badge: 'hot', bg: '#1a0a14' },
+      { name: 'Grid Runner',     genre: 'RACING',      icon: '🏎️', badge: '',    bg: '#0a1428' },
+      { name: 'Rogue Bit',       genre: 'ROGUELIKE',   icon: '🎲',  badge: 'new', bg: '#141a0a' },
+    ];
+
+    const newGames = [
+      { name: 'Neural Storm', genre: 'SHOOTER',  icon: '⚡', badge: 'new', bg: '#0d1428' },
+      { name: 'Iron Veil',    genre: 'MECH SIM', icon: '🤖', badge: 'new', bg: '#1a140a' },
+      { name: 'Null Space',   genre: 'PUZZLE',   icon: '🌀', badge: '',    bg: '#0a1428' },
+      { name: 'Killswitch',   genre: 'SURVIVAL', icon: '🔫', badge: 'hot', bg: '#1a0a0a' },
+    ];
+
+    let loggedIn = false;
+    let currentUser = '';
+
+    function renderGames(list, containerId) {
+      document.getElementById(containerId).innerHTML = list.map(g => `
+        <div class="game-card" onclick="handlePlay('${g.name}')">
+          <div class="game-thumb" style="background:${g.bg};">
+            <span style="font-size:40px;">${g.icon}</span>
+            <div class="play-overlay">&#9654; PLAY</div>
+            ${g.badge ? `<div class="game-badge badge-${g.badge}">${g.badge.toUpperCase()}</div>` : ''}
+          </div>
+          <div class="game-info">
+            <div class="game-name">${g.name}</div>
+            <div class="game-genre">${g.genre}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function handlePlay(gameName) {
+      if (!loggedIn) {
+        document.getElementById('modal-eyebrow').textContent = '// ' + gameName.toUpperCase();
+        document.getElementById('modal-game-name').textContent = gameName;
+        document.getElementById('auth-modal').classList.add('show');
+      } else {
+        showToast('▶ LAUNCHING ' + gameName.toUpperCase() + '...');
+        // TODO: redirect to your game page
+        // window.location.href = '/game/' + gameName.toLowerCase().replace(/ /g, '-');
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('auth-modal').classList.remove('show');
+    }
+
+    function goToLogin() {
+      closeModal();
+      showPage('login-page');
+    }
+
+    function handleSocialLogin(provider) {
+      // TODO: plug in Firebase / Supabase / Auth0 OAuth here
+      doLogin(provider.toUpperCase() + '_USER');
+      showToast('// CONNECTED VIA ' + provider.toUpperCase());
+    }
+
+    function handleEmailLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const pass  = document.getElementById('login-pass').value;
+      const err   = document.getElementById('login-err');
+      if (!email || !pass) {
+        err.style.display = 'block';
+        err.textContent = '// ENTER EMAIL AND PASSWORD';
+        return;
+      }
+      if (pass.length < 4) {
+        err.style.display = 'block';
+        err.textContent = '// INVALID CREDENTIALS — TRY AGAIN';
+        return;
+      }
+      err.style.display = 'none';
+      doLogin(email.split('@')[0].toUpperCase().slice(0, 10));
+    }
+
+    function doLogin(name) {
+      loggedIn = true;
+      currentUser = name;
+      document.getElementById('username-display').textContent = name;
+      document.getElementById('user-avatar').textContent = name.slice(0, 2);
+      showPage('home-page');
+      showToast('// WELCOME BACK, ' + name + ' — SESSION ACTIVE');
+    }
+
+    function doLogout() {
+      loggedIn = false;
+      document.getElementById('login-email').value = '';
+      document.getElementById('login-pass').value  = '';
+      showPage('login-page');
+      showToast('// SESSION TERMINATED');
+    }
+
+    function showSignup() {
+      showToast('// SIGNUP — CONNECT YOUR BACKEND HERE');
+    }
+
+    function showPage(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      window.scrollTo(0, 0);
+    }
+
+    let toastTimer;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      t.style.animation = 'none';
+      void t.offsetWidth;
+      t.style.animation = '';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.style.display = 'none', 3000);
+    }
+
+    renderGames(featuredGames, 'featured-grid');
+    renderGames(newGames, 'new-grid');
+  </script>
+</body>
+</html>

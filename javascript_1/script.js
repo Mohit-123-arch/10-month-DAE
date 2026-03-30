@@ -2,17 +2,16 @@ function checkGame() {
 
     let gameName = document.getElementById("gameInput").value;
 
-    if (gameName.toLowerCase() === "fortnite") {
+    if (gameName.toLowerCase() === "infiniterunner") {
 
-        console.log("Fortnite found!");
+        console.log("Infinite Runner found!");
 
-        document.getElementById("fortniteLink").style.display = "block";
+        document.getElementById("image1").style.display = "block";
 
     } else {
 
         console.log("Game not found");
 
-        document.getElementById("fortniteLink").style.display = "none";
-
+        document.getElementById("image1").style.display = "none";
     }
 }
