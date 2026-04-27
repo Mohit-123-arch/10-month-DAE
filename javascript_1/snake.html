@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Snake - Origin Games</title>
+<style>
+  body { background: #0a0a0a; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: monospace; color: #00ff41; }
+  h1 { font-size: 2rem; margin-bottom: 10px; text-shadow: 0 0 20px #00ff41; }
+  canvas { border: 2px solid #00ff41; box-shadow: 0 0 20px #00ff41; }
+  #score { font-size: 1.2rem; margin: 10px; }
+  #msg { font-size: 1rem; margin-top: 10px; color: #fff; }
+  a { color: #00ff41; text-decoration: none; margin-top: 16px; display: block; }
+</style>
+</head>
+<body>
+<h1>🐍 Snake</h1>
+<div id="score">Score: 0</div>
+<canvas id="c" width="400" height="400"></canvas>
+<div id="msg">Press any arrow key to start</div>
+<a href="landingpage.html">← Back to Games</a>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const size = 20, cols = 20, rows = 20;
+let snake, dir, food, score, running, loop;
+
+function init() {
+  snake = [{x:10,y:10}];
+  dir = {x:0,y:0};
+  score = 0;
+  running = false;
+  placeFood();
+  draw();
+}
+
+function placeFood() {
+  food = {x: Math.floor(Math.random()*cols), y: Math.floor(Math.random()*rows)};
+}
+
+function draw() {
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(0,0,400,400);
+  ctx.fillStyle = '#00ff41';
+  snake.forEach((s,i) => {
+    ctx.globalAlpha = i === 0 ? 1 : 0.7;
+    ctx.fillRect(s.x*size+1, s.y*size+1, size-2, size-2);
+  });
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = '#ff4141';
+  ctx.fillRect(food.x*size+2, food.y*size+2, size-4, size-4);
+  document.getElementById('score').textContent = 'Score: ' + score;
+}
+
+function tick() {
+  const head = {x: snake[0].x+dir.x, y: snake[0].y+dir.y};
+  if(head.x<0||head.x>=cols||head.y<0||head.y>=rows||snake.some(s=>s.x===head.x&&s.y===head.y)) {
+    running = false;
+    clearInterval(loop);
+    document.getElementById('msg').textContent = 'Game Over! Press arrow key to restart';
+    return;
+  }
+  snake.unshift(head);
+  if(head.x===food.x&&head.y===food.y) { score++; placeFood(); }
+  else snake.pop();
+  draw();
+}
+
+document.addEventListener('keydown', e => {
+  const map = {ArrowUp:{x:0,y:-1},ArrowDown:{x:0,y:1},ArrowLeft:{x:-1,y:0},ArrowRight:{x:1,y:0}};
+  if(!map[e.key]) return;
+  e.preventDefault();
+  const d = map[e.key];
+  if(d.x===-dir.x&&d.y===-dir.y) return;
+  dir = d;
+  if(!running) {
+    running = true;
+    document.getElementById('msg').textContent = 'Use arrow keys to move';
+    if(snake.length>1) init();
+    loop = setInterval(tick, 150);
+  }
+});
+
+init();
+</script>
+</body>
+</html>

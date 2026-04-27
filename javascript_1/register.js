@@ -3,6 +3,7 @@ function handleRegister() {
   const email    = document.getElementById('email').value;
   const password = document.getElementById('password').value;
 
+
   if (!username || !email || !password) {
     alert('Please fill in all fields');
     return;
@@ -11,13 +12,14 @@ function handleRegister() {
 
   const users = JSON.parse(localStorage.getItem('users')) || [];
 
- 
+
   const exists = users.find(user => user.email === email);
   if (exists) {
     alert('An account with that email already exists');
     return;
   }
 
+  
   users.push({ username, email, password });
   localStorage.setItem('users', JSON.stringify(users));
 
