@@ -1,25 +1,30 @@
-
-html, body { height: 50%;
+html, body {
+  height: 50%;
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
 }
 
-body { background: radial-gradient(circle at center, #1d1360 0%, #050914 70%);
+body {
+  background: radial-gradient(circle at center, #1d1360 0%, #050914 70%);
 }
+
 header {
   color: #07e98f;
   text-shadow: #00FF00 0px 0px 10px;
   font-size: 3rem;
   margin: 0;
 }
+
 body header {
   text-align: center;
   margin-top: 2rem;
 }
+
 body nav a {
   color: rgb(248, 248, 248);
 }
+
 body footer {
   text-align: center;
   font-size: 1.5rem;
@@ -27,35 +32,27 @@ body footer {
   margin-bottom: 2rem;
   color: rgb(255, 255, 255);
 }
+
 body main {
-    text-align: left;
-    font-size: 1.25rem;
-    color: rgb(195, 168, 105);
-    margin: 1.5rem 0;
+  text-align: left;
+  font-size: 1.25rem;
+  color: rgb(195, 168, 105);
+  margin: 1.5rem 0;
 }
-#image1{
-    width: 150px;
-    height: 150px;
-    box-shadow: 0px 0px 40px rgb(0, 137, 43);
-    border-radius: 15%;
-    transition: all 0.3s ease;
+
+
+.games {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin: 1rem 0;
 }
-#image2{
-    width: 150px;
-    height: 150px;
-    box-shadow: 0px 0px 40px rgb(0, 137, 43);
-    border-radius: 15%;
-    transition: all 0.3s ease;
-}
-#image3{
-    width: 150px;
-    height: 150px;
-    box-shadow: 0px 0px 40px rgb(0, 137, 43);
-    border-radius: 15%;
-    transition: all 0.3s ease;
-}
-#image1:hover, #image2:hover, #image3:hover {
-    transform: scale(1.1);
-    box-shadow: 0px 0px 60px rgb(0, 255, 0);
-    columns: 1;
+
+#image1, #image2, #image3 {
+  width: 150px;
+  height: 150px;
+  box-shadow: 0px 0px 40px rgb(0, 137, 43);
+  border-radius: 15%;
+  transition: all 0.3s ease;
 }
