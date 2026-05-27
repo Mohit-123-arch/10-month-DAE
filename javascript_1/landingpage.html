@@ -1,56 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <link rel="stylesheet" href="style.css" />
-       
+<head>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 1.5rem;
+        }
 
-    </head>
+        nav ul {
+            display: flex;
+            gap: 1.5rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
 
-    <body>
-       <input id="gameInput" type="text" placeholder="Type a game name">
-<button onclick="checkGame()">Search</button>
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
 
-<br><br>
+        .nav-user {
+            color: #07e98f;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px #00FF00;
+        }
 
-<a id="image1" href="infinity.html" style="display:none;">
-    <img src="https://copilot.microsoft.com/th/id/BCO.bcba7a78-e6f3-49b6-929c-58249700175d.png" width="200">
-</a>
-<script src="script.js"></script>
-        <header>Origin Games</header>
-        <nav>
-            <ul>
-                <li><a href="page2.html">Contact Us</a></li>
-                <li><a href="calculator.html">calculator</a></li>
-            </ul>
-        </nav>
-    </body>
+        .btn-logout {
+            padding: 0.4rem 1rem;
+            background: transparent;
+            border: 1px solid #07e98f;
+            border-radius: 6px;
+            color: #07e98f;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
 
-        <div class="container"> <!-- container { position: relative } -->
-        <main>
-            Trending games
-        </main>
+        .btn-logout:hover {
+            background: rgba(7, 233, 143, 0.12);
+            box-shadow: 0 0 12px rgba(7, 233, 143, 0.25);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>Silo Games</header>
+
+    <nav>
+        <ul>
+            <li><a href="page2.html">Contact Us</a></li>
+            <li><a href="calculator.html">Calculator</a></li>
+        </ul>
+        <div class="nav-right">
+            <span class="nav-user" id="nav-username"></span>
+            <button class="btn-logout" onclick="handleLogout()">LOG OUT</button>
+        </div>
+    </nav>
+
+    <input id="gameInput" type="text" placeholder="Type a game name">
+    <button onclick="checkGame()">Search</button>
+
+    <br><br>
+
+    <div class="container">
+
+        <main>Trending games</main>
 
         <div class="nav-links">
-<a id="infinitelink" href="infinity.html" style="display:none;">
-    <img src= https://copilot.microsoft.com/th/id/BCO.ea73617f-7902-458b-87b0-c3203269652c.png width="200">
-</a>
-        <div class="games">
-        <nav>
-            <a href="infinity.html"><img id="image1"src=https://copilot.microsoft.com/th/id/BCO.ea73617f-7902-458b-87b0-c3203269652c.png alt="Game #1"></a>
-        </nav>
-        <nav>
-            <a href="helistrikes.html"><img id="image2" src="https://copilot.microsoft.com/th/id/BCO.3b3b4619-d254-42a6-93d7-cff03e7c0904.png" alt="Game #2"></a>
-        </nav>
-        <nav>
-            <a href="HighwayRush.html"><img id="image3" src=https://copilot.microsoft.com/th/id/BCO.a384eb1a-4957-423a-9e33-bee1d256c715.png alt="Game #3"></a>
-        </nav>
-    </div>
-    <footer>
-            <pre>Where games thrive</pre>
-            <p>© 2026 Free Fire Flux — All Rights Reserved</p>
-        </footer>
 
-         <script src="script.js"></script>
-     </body>
-     
+            <div class="games">
+                <!-- FIX 1: Added missing closing </a> tag for image1 -->
+                <a href="infinity.html">
+                    <img id="image1" src="https://copilot.microsoft.com/th/id/BCO.ae04786a-3e8a-4aff-b8e2-baa4086004ae.png" alt="game #1">
+                </a>
+                <a href="helistrikes.html">
+                    <img id="image2" src="https://copilot.microsoft.com/th/id/BCO.cea94afa-5d5d-4687-a6c8-7e0ae726bd21.png" alt="game #2">
+                </a>
+                <a href="HighwayRush.html">
+                    <img id="image3" src="https://copilot.microsoft.com/th/id/BCO.a384eb1a-4957-423a-9e33-bee1d256c715.png" alt="game #3">
+                </a>
+                <!-- FIX 2: Fixed malformed src attribute (removed backslash, closed quote properly) and added alt attribute -->
+                <a href="wildwest.html">
+                    <img id="image4" src="https://copilot.microsoft.com/th/id/BCO.5b20c726-7d09-48ee-9521-c8a08b1b54c3.png?h=384" alt="game #4">
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+    <footer>
+        <pre>Where games thrive</pre>
+        <p>© 2026 Silo Games — All Rights Reserved</p>
+    </footer>
+
+    <script src="script.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAWhjNHUE2DQ4nj6Oka9ls4tK1lIHcqQqs",
+            authDomain: "origin-games-1066a.firebaseapp.com",
+            projectId: "origin-games-1066a",
+            storageBucket: "origin-games-1066a.firebasestorage.app",
+            messagingSenderId: "300977781000",
+            appId: "1:300977781000:web:899b2d0555d023532854bd"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Show username in nav
+        const user = JSON.parse(localStorage.getItem('loggedInUser'));
+        if (user) {
+            const nameEl = document.getElementById('nav-username');
+            const displayName = user.name || user.email.split('@')[0];
+            nameEl.textContent = '👤 ' + displayName;
+        }
+
+        // Logout function
+        window.handleLogout = async function () {
+            try {
+                await signOut(auth);
+                localStorage.removeItem('loggedInUser');
+                window.location.href = 'login.html';
+            } catch (e) {
+                console.error('Logout failed:', e);
+            }
+        }
+    </script>
+
+</body>
 </html>

@@ -1,0 +1,2343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WILD WEST - Frontier RPG</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;overflow:hidden;width:100vw;height:100vh;font-family:'Crimson Text',serif;color:#d4b896}
+
+/* ── UTIL ── */
+.screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center}
+.screen.active{display:flex}
+
+/* ══════════ TITLE ══════════ */
+#title{overflow:hidden}
+#title-bg{position:absolute;inset:0}
+.title-wrap{position:relative;z-index:5;text-align:center}
+.t-eyebrow{font-family:'Cinzel',serif;font-size:11px;letter-spacing:0.55em;color:rgba(200,160,80,.55);text-transform:uppercase;margin-bottom:14px}
+.t-logo{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(52px,10vw,130px);line-height:.88;letter-spacing:.05em;color:transparent;background:linear-gradient(180deg,#f5dfa0 0%,#c8922a 40%,#7a4a10 100%);-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 30px rgba(200,146,42,.5))}
+.t-sub{font-family:'Cinzel',serif;font-size:clamp(11px,1.8vw,16px);letter-spacing:.4em;color:rgba(210,180,110,.65);text-transform:uppercase;margin-top:8px}
+.t-div{width:180px;height:1px;background:linear-gradient(90deg,transparent,rgba(200,160,80,.45),transparent);margin:22px auto}
+.t-quote{font-style:italic;font-size:14px;color:rgba(200,170,110,.45);max-width:380px;margin-bottom:36px}
+.btn-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.xbtn{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.18em;padding:11px 30px;border:1px solid rgba(200,150,60,.4);background:rgba(0,0,0,.6);color:rgba(200,160,80,.9);cursor:pointer;transition:all .25s;text-transform:uppercase}
+.xbtn:hover,.xbtn.sel{border-color:rgba(200,150,60,.9);color:#f5dfa0;background:rgba(60,35,10,.7)}
+.xbtn.prim{background:rgba(110,65,12,.75);border-color:rgba(200,150,60,.7)}
+
+/* ══════════ ROLE SELECT ══════════ */
+#role-screen{background:radial-gradient(ellipse at 50% 100%,#2a1808 0%,#0a0604 100%)}
+.role-title{font-family:'Cinzel',serif;font-size:clamp(24px,4vw,42px);color:#c8922a;letter-spacing:.12em;margin-bottom:8px}
+.role-sub{font-size:14px;color:rgba(200,170,110,.55);letter-spacing:.1em;margin-bottom:36px}
+.role-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;width:100%;max-width:780px;margin-bottom:36px}
+.role-card{border:1px solid rgba(200,150,60,.2);padding:22px 16px;cursor:pointer;text-align:center;background:rgba(0,0,0,.4);transition:all .25s;position:relative}
+.role-card:hover,.role-card.sel{border-color:rgba(200,150,60,.8);background:rgba(60,35,10,.5)}
+.role-card.sel::after{content:'✓';position:absolute;top:8px;right:12px;color:#c8922a;font-size:16px}
+.role-icon{font-size:44px;margin-bottom:10px}
+.role-name{font-family:'Cinzel',serif;font-size:16px;color:#c8922a;letter-spacing:.08em;margin-bottom:4px}
+.role-desc{font-size:12px;color:rgba(200,170,110,.6);line-height:1.5}
+.role-perks{font-size:11px;color:rgba(180,150,90,.5);margin-top:8px;font-style:italic}
+
+/* ══════════ LOADING ══════════ */
+#loading{background:#050302;gap:14px}
+.ld-t{font-family:'Cinzel',serif;font-size:15px;letter-spacing:.3em;color:rgba(200,160,80,.65);text-transform:uppercase}
+.ld-b{width:260px;height:2px;background:rgba(200,160,80,.12)}
+.ld-f{height:100%;background:linear-gradient(90deg,#7a4a10,#c8922a,#f5dfa0);width:0%;transition:width .2s}
+.ld-tip{font-style:italic;font-size:13px;color:rgba(200,170,110,.4);max-width:340px;text-align:center;line-height:1.6}
+
+/* ══════════ HUD ══════════ */
+#hud{position:absolute;inset:0;pointer-events:none;z-index:10;display:none}
+#hud.active{display:block}
+.vignette{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,transparent 50%,rgba(0,0,0,.7) 100%);pointer-events:none}
+.grain{position:absolute;inset:0;opacity:.05;animation:grainA .1s steps(1) infinite;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none}
+@keyframes grainA{0%{transform:translate(0,0)}25%{transform:translate(-2px,2px)}50%{transform:translate(2px,-1px)}75%{transform:translate(-1px,2px)}100%{transform:translate(1px,-2px)}}
+
+/* TOP BAR */
+.hud-top{position:absolute;top:0;left:0;right:0;padding:12px 20px;display:flex;justify-content:space-between;align-items:flex-start;background:linear-gradient(180deg,rgba(0,0,0,.6) 0%,transparent 100%)}
+.player-col{display:flex;flex-direction:column;gap:4px}
+.p-name{font-family:'Cinzel',serif;font-size:16px;color:rgba(220,185,100,.9);letter-spacing:.1em}
+.p-role-badge{display:inline-block;font-size:10px;letter-spacing:.2em;padding:2px 8px;border:1px solid;text-transform:uppercase;margin-bottom:3px}
+.badge-sheriff{border-color:#3a8a3a;color:#5aba5a}
+.badge-outlaw{border-color:#8a3a3a;color:#ba5a5a}
+.badge-hunter{border-color:#8a6a2a;color:#c8922a}
+.badge-miner{border-color:#5a5a8a;color:#8a8aba}
+.badge-neutral{border-color:rgba(200,160,80,.3);color:rgba(200,160,80,.6)}
+
+/* CORE RINGS */
+.cores{display:flex;gap:6px;align-items:flex-end}
+.core{display:flex;flex-direction:column;align-items:center;gap:2px;width:48px}
+.cring{width:42px;height:42px;position:relative}
+.cring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.cring .cbg{fill:none;stroke:rgba(0,0,0,.55);stroke-width:4}
+.cring .cfill{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset .4s}
+.cring .cicon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px}
+.clbl{font-family:'Cinzel',serif;font-size:7px;letter-spacing:.12em;color:rgba(200,170,100,.5);text-transform:uppercase}
+
+/* CENTER TOP */
+.hud-center{display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:all}
+.time-lbl{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.15em;color:rgba(200,165,90,.55);text-transform:uppercase}
+.wanted-row{display:flex;gap:4px}
+.wstar{font-size:14px;color:rgba(200,160,80,.15);transition:all .3s}
+.wstar.lit{color:#c8922a;filter:drop-shadow(0 0 4px rgba(200,146,42,.8))}
+.wanted-txt{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.2em;color:rgba(200,160,80,.35);text-transform:uppercase}
+.wanted-txt.hot{color:rgba(220,60,40,.9);animation:wFl 1s ease-in-out infinite}
+@keyframes wFl{0%,100%{opacity:1}50%{opacity:.25}}
+.view-row{display:flex;gap:2px;margin-top:4px}
+.vbtn{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.08em;padding:4px 10px;border:1px solid rgba(200,150,60,.2);background:rgba(0,0,0,.45);color:rgba(200,160,80,.5);cursor:pointer;transition:all .2s;text-transform:uppercase}
+.vbtn.active,.vbtn:hover{background:rgba(100,55,10,.55);color:rgba(220,185,100,.9);border-color:rgba(200,150,60,.5)}
+
+/* RIGHT PANEL */
+.hud-right{text-align:right;display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+.money-val{font-family:'Cinzel',serif;font-size:22px;color:rgba(220,190,100,.9);letter-spacing:.04em}
+.money-lbl{font-size:9px;letter-spacing:.2em;color:rgba(200,160,80,.35);text-transform:uppercase}
+.inv-row{display:flex;gap:4px;margin-top:2px;justify-content:flex-end;flex-wrap:wrap;max-width:160px}
+.inv-slot{width:26px;height:26px;border:1px solid rgba(200,150,60,.25);background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:13px;position:relative}
+.inv-slot .qty{position:absolute;bottom:0;right:2px;font-size:8px;color:rgba(220,190,100,.8);font-family:'Cinzel',serif}
+
+/* CROSSHAIR */
+.xhair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
+.xh-dot{width:4px;height:4px;background:rgba(255,240,200,.8);border-radius:50%;box-shadow:0 0 5px rgba(255,220,100,.5)}
+.xh-l{position:absolute;background:rgba(255,240,200,.55)}
+.xh-l.t{width:1px;height:9px;left:1.5px;top:-13px}
+.xh-l.b{width:1px;height:9px;left:1.5px;bottom:-13px}
+.xh-l.l{height:1px;width:9px;top:1.5px;right:-13px}
+.xh-l.r{height:1px;width:9px;top:1.5px;left:-13px}
+
+/* DEAD EYE */
+.de-overlay{position:absolute;inset:0;pointer-events:none;background:rgba(30,5,5,0);transition:background .3s}
+.de-overlay.on{background:rgba(30,5,5,.42)}
+.de-overlay.on::before{content:'';position:absolute;inset:0;border:3px solid rgba(160,30,10,.4);box-shadow:inset 0 0 80px rgba(120,20,5,.45)}
+
+/* HIT FLASH */
+.hit-fl{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,transparent 50%,rgba(160,20,20,.5) 100%);opacity:0;transition:opacity .08s;pointer-events:none}
+
+/* NOTIFICATIONS */
+.notif-area{position:absolute;top:58px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;min-width:300px}
+.notif{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.15em;color:rgba(220,185,100,.95);background:rgba(0,0,0,.55);padding:6px 20px;border:1px solid rgba(200,150,60,.22);text-transform:uppercase;opacity:0;transition:opacity .35s;text-align:center}
+.notif.show{opacity:1}
+
+/* BIG TEXT */
+.big-txt{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Cinzel',serif;font-size:clamp(22px,4vw,50px);color:rgba(220,185,100,.95);letter-spacing:.2em;text-align:center;pointer-events:none;opacity:0;transition:opacity .5s;text-shadow:0 2px 20px rgba(200,146,42,.5)}
+.big-txt.show{opacity:1}
+
+/* MINIMAP */
+.mm-wrap{position:absolute;bottom:58px;left:20px;width:145px;height:145px;border:1px solid rgba(200,150,60,.22);background:rgba(0,0,0,.65)}
+.mm-cmp{position:absolute;top:3px;left:50%;transform:translateX(-50%);font-family:'Cinzel',serif;font-size:8px;color:rgba(200,160,80,.4)}
+
+/* SKILL BAR */
+.skill-area{position:absolute;bottom:58px;right:18px;display:flex;flex-direction:column;gap:5px;min-width:130px}
+.skill-row{display:flex;align-items:center;gap:6px}
+.skill-name{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;color:rgba(200,165,90,.55);text-transform:uppercase;width:55px;text-align:right}
+.skill-bar{flex:1;height:3px;background:rgba(255,255,255,.08)}
+.skill-fill{height:100%;transition:width .4s}
+.skill-lvl{font-family:'Cinzel',serif;font-size:9px;color:rgba(200,165,90,.6);width:18px;text-align:right}
+
+/* AMMO */
+.ammo-wrap{position:absolute;bottom:58px;left:50%;transform:translateX(-50%);text-align:center}
+.ammo-b{display:flex;gap:3px;justify-content:center;margin-bottom:3px}
+.bullet{width:5px;height:13px;border-radius:3px 3px 1px 1px;transition:background .2s}
+.bullet.f{background:linear-gradient(180deg,#f0d060,#8b6020)}
+.bullet.e{background:rgba(255,255,255,.1)}
+.ammo-lbl{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.15em;color:rgba(200,165,90,.4);text-transform:uppercase}
+
+/* KILL FEED */
+.kfeed{position:absolute;top:52px;left:18px;display:flex;flex-direction:column;gap:4px;max-width:220px}
+.ke{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.06em;color:rgba(220,185,100,.9);background:rgba(0,0,0,.5);padding:3px 10px;border-left:2px solid rgba(200,146,42,.55);animation:kF 3.5s forwards}
+@keyframes kF{0%,60%{opacity:1}100%{opacity:0}}
+
+/* HONOR + STATUS */
+.honor-wrap{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px}
+.honor-bar{width:110px;height:2px;background:rgba(255,255,255,.07)}
+.honor-fill{height:100%;background:linear-gradient(90deg,#8b2020,#c8922a,#3a8b3a);transition:width .5s}
+.honor-lbl{font-family:'Cinzel',serif;font-size:8px;letter-spacing:.2em;color:rgba(200,165,90,.3);text-transform:uppercase}
+
+/* ACTION PROMPT */
+.action-prompt{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);font-family:'Cinzel',serif;font-size:14px;letter-spacing:.12em;color:rgba(220,185,100,.85);background:rgba(0,0,0,.58);padding:7px 22px;border:1px solid rgba(200,150,60,.28);opacity:0;transition:opacity .2s;pointer-events:none;text-align:center;white-space:nowrap}
+.action-prompt.show{opacity:1}
+
+/* BOTTOM HINT */
+.ctrl-hint{position:absolute;bottom:14px;left:18px;font-size:11px;color:rgba(200,160,80,.35);line-height:1.9;letter-spacing:.06em}
+
+/* ══════════ SHOP / PANEL (pointer-events: all) ══════════ */
+.panel{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.82);z-index:30;pointer-events:all}
+.panel.open{display:flex}
+.panel-box{background:rgba(20,12,5,.95);border:1px solid rgba(200,150,60,.3);padding:28px 32px;max-width:600px;width:90%;max-height:85vh;overflow-y:auto}
+.panel-title{font-family:'Cinzel',serif;font-size:24px;color:#c8922a;letter-spacing:.12em;margin-bottom:4px}
+.panel-sub{font-size:13px;color:rgba(200,165,90,.5);margin-bottom:20px;font-style:italic}
+.panel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:18px}
+.shop-item{border:1px solid rgba(200,150,60,.18);padding:12px 10px;cursor:pointer;text-align:center;background:rgba(0,0,0,.3);transition:all .2s}
+.shop-item:hover{border-color:rgba(200,150,60,.7);background:rgba(60,35,10,.4)}
+.shop-item.owned{border-color:rgba(60,150,60,.4);background:rgba(10,40,10,.3)}
+.si-icon{font-size:28px;margin-bottom:6px}
+.si-name{font-family:'Cinzel',serif;font-size:12px;color:rgba(220,185,100,.9);letter-spacing:.06em}
+.si-price{font-size:11px;color:rgba(200,160,80,.6);margin-top:3px}
+.si-desc{font-size:10px;color:rgba(180,155,100,.45);margin-top:3px;line-height:1.4}
+.panel-close{display:block;width:100%;font-family:'Cinzel',serif;font-size:13px;letter-spacing:.15em;padding:10px;border:1px solid rgba(200,150,60,.3);background:transparent;color:rgba(200,160,80,.7);cursor:pointer;transition:all .2s;text-transform:uppercase;margin-top:4px}
+.panel-close:hover{border-color:rgba(200,150,60,.8);color:#f5dfa0;background:rgba(60,35,10,.4)}
+
+/* ══════════ GAME OVER ══════════ */
+#gameover{background:rgba(0,0,0,.9);z-index:50}
+.go-h{font-family:'Cinzel',serif;font-size:clamp(42px,7vw,80px);color:#6b1a0a;letter-spacing:.12em;font-weight:900}
+.go-stats{font-family:'Cinzel',serif;font-size:15px;color:rgba(200,165,90,.75);margin:14px 0 30px;text-align:center;line-height:2.2;letter-spacing:.05em}
+
+/* ══════════ LOCK OVERLAY ══════════ */
+#lockscreen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.76);z-index:20;cursor:pointer;backdrop-filter:blur(2px)}
+#lockscreen h2{font-family:'Cinzel',serif;font-size:20px;color:rgba(220,185,100,.9);letter-spacing:.2em;animation:blk 2s ease-in-out infinite}
+#lockscreen p{font-style:italic;font-size:12px;color:rgba(200,160,80,.4);margin-top:8px}
+@keyframes blk{0%,100%{opacity:1}50%{opacity:.2}}
+</style>
+</head>
+<body>
+
+<!-- TITLE -->
+<div id="title" class="screen active">
+  <canvas id="title-bg"></canvas>
+  <div class="title-wrap">
+    <div class="t-eyebrow">Starboard Frontier - Open World RPG</div>
+    <div class="t-logo">WILD WEST</div>
+    <div class="t-sub">Bronze City · 1889</div>
+    <div class="t-div"></div>
+    <div class="t-quote">"Sheriff, Outlaw, Hunter, or Miner - the frontier is yours."</div>
+    <div class="btn-row">
+      <button class="xbtn prim" onclick="showScreen('role-screen')">Choose Your Path</button>
+      <button class="xbtn" onclick="showCtrlHelp()">Controls</button>
+    </div>
+  </div>
+</div>
+
+<!-- ROLE SELECT -->
+<div id="role-screen" class="screen">
+  <div class="role-title">Choose Your Path</div>
+  <div class="role-sub">Your role shapes how you earn money and survive in the frontier</div>
+  <div class="role-grid" id="roleGrid"></div>
+  <div class="btn-row">
+    <button class="xbtn" onclick="showScreen('title')">← Back</button>
+    <button class="xbtn prim" onclick="beginLoad()">Ride into the Frontier →</button>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loading" class="screen">
+  <div class="ld-t">Saddling Up...</div>
+  <div class="ld-b"><div class="ld-f" id="ldFill"></div></div>
+  <div class="ld-tip" id="ldTip"></div>
+</div>
+
+<!-- CANVAS -->
+<canvas id="gc" style="display:none;position:absolute;inset:0;width:100%;height:100%"></canvas>
+
+<!-- POINTER LOCK -->
+<div id="lockscreen" style="display:none" onclick="doLock()">
+  <h2>Click to Enter the Frontier</h2>
+  <p>WASD Move · Mouse Aim · Click Shoot · E Mount/Interact · Z Dead Eye · R Reload · Shift Sprint · G Mine · H Hunt · B Bank · V Camera · Tab Skills</p>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="vignette"></div>
+  <div class="grain"></div>
+
+  <div class="hud-top">
+    <div class="player-col">
+      <div class="p-role-badge" id="roleBadge">NEUTRAL</div>
+      <div class="p-name" id="pName">COWBOY</div>
+      <div class="cores">
+        <div class="core">
+          <div class="cring"><svg viewBox="0 0 42 42"><circle class="cbg" cx="21" cy="21" r="17"/><circle class="cfill" id="hpRing" cx="21" cy="21" r="17" stroke="#c03838" stroke-dasharray="107" stroke-dashoffset="0"/></svg><div class="cicon">♥</div></div>
+          <div class="clbl">HP</div>
+        </div>
+        <div class="core">
+          <div class="cring"><svg viewBox="0 0 42 42"><circle class="cbg" cx="21" cy="21" r="17"/><circle class="cfill" id="spRing" cx="21" cy="21" r="17" stroke="#3878c0" stroke-dasharray="107" stroke-dashoffset="0"/></svg><div class="cicon" style="font-size:11px">◈</div></div>
+          <div class="clbl">SP</div>
+        </div>
+        <div class="core">
+          <div class="cring"><svg viewBox="0 0 42 42"><circle class="cbg" cx="21" cy="21" r="17"/><circle class="cfill" id="deRing" cx="21" cy="21" r="17" stroke="#c8922a" stroke-dasharray="107" stroke-dashoffset="0"/></svg><div class="cicon" style="font-size:11px">✦</div></div>
+          <div class="clbl">DE</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hud-center">
+      <div class="time-lbl" id="timeLbl">DAWN · 06:00</div>
+      <div class="wanted-row">
+        <span class="wstar" id="ws1">★</span><span class="wstar" id="ws2">★</span>
+        <span class="wstar" id="ws3">★</span><span class="wstar" id="ws4">★</span>
+        <span class="wstar" id="ws5">★</span>
+      </div>
+      <div class="wanted-txt" id="wantedTxt">Reputation</div>
+      <div class="view-row">
+        <button class="vbtn active" id="vtps" onclick="setView('tps')">3rd</button>
+        <button class="vbtn" id="vfps" onclick="setView('fps')">1st</button>
+        <button class="vbtn" id="vtop" onclick="setView('top')">Map</button>
+      </div>
+    </div>
+
+    <div class="hud-right">
+      <div class="money-val" id="moneyVal">$0</div>
+      <div class="money-lbl">Cash</div>
+      <div class="inv-row" id="invRow"></div>
+    </div>
+  </div>
+
+  <!-- Crosshair -->
+  <div class="xhair" id="xhair">
+    <div class="xh-dot"></div>
+    <div class="xh-l t"></div><div class="xh-l b"></div>
+    <div class="xh-l l"></div><div class="xh-l r"></div>
+  </div>
+
+  <div class="de-overlay" id="deOverlay"></div>
+  <div class="hit-fl" id="hitFl"></div>
+
+  <div class="notif-area">
+    <div class="notif" id="n1"></div>
+    <div class="notif" id="n2"></div>
+  </div>
+  <div class="big-txt" id="bigTxt"></div>
+
+  <!-- Minimap -->
+  <div class="mm-wrap">
+    <div class="mm-cmp">N</div>
+    <canvas id="mm" width="145" height="145"></canvas>
+  </div>
+
+  <!-- Skills (bottom right) -->
+  <div class="skill-area" id="skillArea"></div>
+
+  <!-- Ammo -->
+  <div class="ammo-wrap">
+    <div class="ammo-b" id="ammoBullets"></div>
+    <div class="ammo-lbl" id="ammoLbl">Revolver</div>
+  </div>
+
+  <!-- Kill feed -->
+  <div class="kfeed" id="kfeed"></div>
+
+  <!-- Action prompt -->
+  <div class="action-prompt" id="actionPrompt"></div>
+
+  <!-- Honor -->
+  <div class="honor-wrap">
+    <div class="honor-bar"><div class="honor-fill" id="honorFill" style="width:50%"></div></div>
+    <div class="honor-lbl">Honor</div>
+  </div>
+
+
+  <!-- Horse Status HUD -->
+  <div id="horseStatus" style="position:absolute;top:58px;right:18px;background:rgba(0,0,0,.5);border:1px solid rgba(200,150,60,.2);padding:8px 12px;min-width:130px;opacity:0;transition:opacity .3s">
+    <div id="horseName" style="font-family:Cinzel,serif;font-size:10px;color:rgba(200,165,90,.7);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">🐴 Brown Mare</div>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+      <span style="font-size:9px;color:rgba(200,165,90,.45);width:40px;text-align:right">STAM</span>
+      <div style="flex:1;height:3px;background:rgba(255,255,255,.08)"><div id="hStam" style="height:100%;width:100%;background:#3878c0;transition:width .4s"></div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span style="font-size:9px;color:rgba(200,165,90,.45);width:40px;text-align:right">BOND</span>
+      <div style="flex:1;height:3px;background:rgba(255,255,255,.08)"><div id="hBond" style="height:100%;width:0%;background:#c8922a;transition:width .4s"></div></div>
+    </div>
+  </div>
+
+  <!-- Lasso Ring -->
+  <div id="lassoRing" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;opacity:0;transition:opacity .3s">
+    <svg width="90" height="90" viewBox="0 0 90 90" style="animation:lassoSpin 0.9s linear infinite">
+      <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(200,150,60,.75)" stroke-width="3" stroke-dasharray="14 8"/>
+      <circle cx="45" cy="45" r="26" fill="none" stroke="rgba(200,150,60,.4)" stroke-width="2" stroke-dasharray="7 11"/>
+      <circle cx="45" cy="8" r="5" fill="rgba(220,180,80,.9)"/>
+    </svg>
+  </div>
+  <style>@keyframes lassoSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
+
+  <!-- Tame Progress -->
+  <div id="tameProg" style="position:absolute;bottom:115px;left:50%;transform:translateX(-50%);text-align:center;opacity:0;transition:opacity .3s;pointer-events:none">
+    <div id="tameLbl" style="font-family:Cinzel,serif;font-size:12px;letter-spacing:.14em;color:rgba(220,185,100,.85);text-transform:uppercase;margin-bottom:5px">Taming...</div>
+    <div style="width:200px;height:6px;background:rgba(255,255,255,.1);border:1px solid rgba(200,150,60,.2)">
+      <div id="tameFill" style="height:100%;width:0%;background:linear-gradient(90deg,#c8922a,#f5dfa0);transition:width .2s"></div>
+    </div>
+  </div>
+
+  <!-- Train Speed HUD -->
+  <div id="trainHud" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-160px);text-align:center;opacity:0;transition:opacity .3s;pointer-events:none;background:rgba(0,0,0,.5);padding:8px 20px;border:1px solid rgba(200,150,60,.2)">
+    <div id="trainSpeedVal" style="font-family:Cinzel,serif;font-size:34px;color:rgba(220,185,100,.9);letter-spacing:.1em">0</div>
+    <div style="font-size:9px;letter-spacing:.25em;color:rgba(200,165,90,.45);text-transform:uppercase">MPH · LOCOMOTIVE · W/S to throttle</div>
+  </div>
+
+  <div class="ctrl-hint">WASD Move · Shift Sprint · <b>E = Mount / Interact</b> · Z = Dead Eye · R Reload<br>G Mine · H Hunt · L Lasso (horse/animal/enemy) · B Bank · Tab Skills · V Camera · X Bandage</div>
+</div>
+
+<!-- SHOP PANEL -->
+<div class="panel" id="shopPanel">
+  <div class="panel-box">
+    <div class="panel-title" id="shopTitle">General Store</div>
+    <div class="panel-sub" id="shopSub">Browse goods and equipment</div>
+    <div class="panel-grid" id="shopGrid"></div>
+    <button class="panel-close" onclick="closePanel('shopPanel')">Close Store</button>
+  </div>
+</div>
+
+<!-- SKILLS PANEL -->
+<div class="panel" id="skillsPanel">
+  <div class="panel-box">
+    <div class="panel-title">Skills & Progression</div>
+    <div class="panel-sub">Level up through actions in the frontier</div>
+    <div id="skillsDetail"></div>
+    <button class="panel-close" onclick="closePanel('skillsPanel')">Close</button>
+  </div>
+</div>
+
+<!-- GAME OVER -->
+<div id="gameover" class="screen">
+  <div class="go-h">YOU DIED</div>
+  <div class="go-stats" id="goStats"></div>
+  <div class="btn-row">
+    <button class="xbtn prim" onclick="restartGame()">Ride Again</button>
+    <button class="xbtn" onclick="showScreen('title')">Main Menu</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════
+const ROLES={
+  sheriff:{id:'sheriff',name:'Sheriff',icon:'⭐',badge:'badge-sheriff',desc:'Uphold the law. Arrest outlaws, collect bounties, protect towns.',perks:'Bonus vs Outlaws · Lasso · Arrest ability',cashMult:1.2},
+  outlaw:{id:'outlaw',name:'Outlaw',icon:'💀',badge:'badge-outlaw',desc:'Rob banks, steal from stores, evade the law for big rewards.',perks:'Lockpick · Higher robbery payout · Hideout access',cashMult:1.5},
+  hunter:{id:'hunter',name:'Hunter',icon:'🎯',badge:'badge-hunter',desc:'Track and hunt animals, sell pelts and meat for steady income.',perks:'Animal radar · Better pelt prices · Campfire',cashMult:1.0},
+  miner:{id:'miner',name:'Miner',icon:'⛏',badge:'badge-miner',desc:'Mine gold, silver, and gems in the mountains for wealth.',perks:'Faster mining · Detect ore · Heavy backpack',cashMult:1.0},
+};
+
+const SHOP_ITEMS={
+  general:[
+    {id:'pistol',name:'Revolver',icon:'🔫',price:0,desc:'Standard 6-shot revolver',owned:true,type:'weapon',ammo:6,dmg:25},
+    {id:'rifle',name:'Rifle',icon:'🎯',price:350,desc:'Long-range precision rifle',owned:false,type:'weapon',ammo:5,dmg:45},
+    {id:'shotgun',name:'Shotgun',icon:'💥',price:280,desc:'Close range devastation',owned:false,type:'weapon',ammo:2,dmg:80},
+    {id:'sniper',name:'Sniper',icon:'🔭',price:650,desc:'Extreme range elimination',owned:false,type:'weapon',ammo:3,dmg:90},
+    {id:'pickaxe',name:'Pickaxe T1',icon:'⛏',price:50,desc:'Basic mining tool',owned:false,type:'tool'},
+    {id:'pickaxe2',name:'Pickaxe T3',icon:'⛏',price:200,desc:'Faster ore extraction',owned:false,type:'tool'},
+    {id:'campfire',name:'Campfire',icon:'🔥',price:30,desc:'Cook meat for HP regen',owned:false,type:'tool'},
+    {id:'bandage',name:'Bandages ×5',icon:'🩹',price:80,desc:'Restore 30 HP each',owned:false,type:'consumable',qty:5},
+    {id:'ammo_pack',name:'Ammo Pack',icon:'🔶',price:40,desc:'Refill all weapon ammo',owned:false,type:'consumable'},
+    {id:'dynamite',name:'Dynamite',icon:'🧨',price:120,desc:'Blow open safes + damage',owned:false,type:'consumable',qty:3},
+    {id:'lasso',name:'Lasso',icon:'🪢',price:150,desc:'Capture outlaws alive for bounty',owned:false,type:'tool'},
+    {id:'lantern',name:'Lantern',icon:'🏮',price:35,desc:'See clearly at night',owned:false,type:'tool'},
+  ],
+  horses:[
+    {id:'horse_brown',name:'Brown Mare',icon:'🐴',price:0,desc:'Basic reliable horse',owned:true,type:'horse',speed:1.0,color:0x8B5A2B},
+    {id:'horse_black',name:'Black Stallion',icon:'🐎',price:500,desc:'Fast and agile',owned:false,type:'horse',speed:1.4,color:0x1a1008},
+    {id:'horse_white',name:'White Arabian',icon:'🐴',price:800,desc:'Fastest in the west',owned:false,type:'horse',speed:1.7,color:0xE8DCC8},
+    {id:'horse_red',name:'Chestnut',icon:'🐴',price:350,desc:'Strong and sturdy',owned:false,type:'horse',speed:1.2,color:0x7a3820},
+  ],
+};
+
+const ORES=[
+  {name:'Iron',color:0x8a8a9a,value:8,chance:0.4},
+  {name:'Copper',color:0xc87a3a,value:12,chance:0.3},
+  {name:'Silver',color:0xd0d0e0,value:25,chance:0.18},
+  {name:'Gold',color:0xf0c840,value:50,chance:0.08},
+  {name:'Ruby',color:0xd03040,value:120,chance:0.025},
+  {name:'Diamond',color:0xd0f0ff,value:300,chance:0.005},
+];
+
+const ANIMAL_TYPES=[
+  {name:'Deer',color:0x8B6555,hp:2,spd:.065,reward:35,pts:50,size:1.0},
+  {name:'Rabbit',color:0xd0b898,hp:1,spd:.11,reward:10,pts:20,size:.4},
+  {name:'Wolf',color:0x7A7A8A,hp:3,spd:.09,reward:55,pts:70,size:.9,hostile:true},
+  {name:'Bear',color:0x2a1a0a,hp:8,spd:.04,reward:120,pts:180,size:2.0,hostile:true},
+  {name:'Bison',color:0x5a3a20,hp:5,spd:.05,reward:80,pts:110,size:1.6},
+  {name:'Cougar',color:0xb08050,hp:4,spd:.10,reward:90,pts:140,size:1.0,hostile:true},
+];
+
+const ENEMY_TYPES=[
+  {name:'Outlaw',color:0x5a3a1a,hp:3,spd:.038,reward:60,pts:80,isEnemy:true},
+  {name:'Bandit',color:0x6a2a18,hp:2,spd:.055,reward:40,pts:60,isEnemy:true},
+  {name:'Bounty Hunter',color:0x3a3a5a,hp:4,spd:.045,reward:0,pts:100,isEnemy:true},
+  {name:'Lawman',color:0x2a4a2a,hp:3,spd:.05,reward:0,pts:50,isEnemy:true,chasesOutlaws:true},
+];
+
+const TIPS=[
+  '"Become a seasoned explorer, hit gold in the Mountains, or take for yourself and steal as an Outlaw."',
+  '"You can plan a pretty picnic, but you can\'t predict the weather."',
+  '"Some men are born lucky. Others are born outlaws."',
+  '"The frontier never forgives the unprepared."',
+  '"Mine for silver, hunt for glory, rob for the thrill."',
+];
+
+// ═══════════════════════════════════════════════
+// GAME STATE
+// ═══════════════════════════════════════════════
+let R,S,C,playerMesh,horseMesh;
+let locked=false,running=false;
+let yaw=0,pitch=0,K={};
+let currentView='tps';
+let hp=100,sp=100,de=100,honor=50;
+let money=0,score=0,wanted=0,wantedDecay=0;
+let ammo=6,maxAmmo=6,reloading=false,reloadT=0;
+let deActive=false;
+let onHorse=false,horseSpeed=1.0;
+let gTime=360,wave=1;
+let playerRole=ROLES.sheriff;
+let playerName='COWBOY';
+let inventory={ore:[],pelts:[],gold:0,dynamite:0,bandages:0,ammo_packs:0};
+let ownedItems=['pistol','horse_brown'];
+let equippedWeapon='pistol';
+let equippedHorse='horse_brown';
+let skills={hunting:0,mining:0,thieving:0,justice:0,survival:0};
+let skillXP={hunting:0,mining:0,thieving:0,justice:0,survival:0};
+const SKILL_LEVELS=[0,100,250,500,900,1500,2400,3800,6000,9500,15000];
+let entities=[],oreNodes=[],buildings=[];
+let mmCtx,lastT=0;
+let nearbyInteract=null;
+let notifIdx=0;
+let selectedRole='sheriff';
+const camTarget=new THREE.Vector3();
+const CIRC=107;
+
+// ═══════════════════════════════════════════════
+// TITLE CANVAS
+// ═══════════════════════════════════════════════
+function drawTitle(){
+  const c=document.getElementById('title-bg');
+  c.width=innerWidth;c.height=innerHeight;
+  const ctx=c.getContext('2d');
+  // Sky
+  const sky=ctx.createLinearGradient(0,0,0,innerHeight);
+  sky.addColorStop(0,'#050810');sky.addColorStop(.3,'#1a0e06');
+  sky.addColorStop(.6,'#c05828');sky.addColorStop(.85,'#e07038');sky.addColorStop(1,'#2a1606');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,innerWidth,innerHeight);
+  // Stars
+  for(let i=0;i<180;i++){
+    const sx=((i*173)%innerWidth),sy=((i*97)%(innerHeight*.38));
+    ctx.fillStyle=`rgba(255,255,200,${.3+Math.random()*.7})`;
+    ctx.beginPath();ctx.arc(sx,sy,.8+Math.random()*.8,0,Math.PI*2);ctx.fill();
+  }
+  // Sun glow
+  const sg=ctx.createRadialGradient(innerWidth*.7,innerHeight*.55,0,innerWidth*.7,innerHeight*.55,innerWidth*.4);
+  sg.addColorStop(0,'rgba(255,180,60,.45)');sg.addColorStop(.4,'rgba(210,90,20,.2)');sg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=sg;ctx.fillRect(0,0,innerWidth,innerHeight);
+  // Mountains
+  ctx.fillStyle='#130a04';
+  ctx.beginPath();ctx.moveTo(0,innerHeight*.62);
+  for(let x=0;x<=innerWidth;x+=innerWidth/20){ctx.lineTo(x,innerHeight*(.42+Math.sin(x*.03+2)*.12+Math.cos(x*.019)*.07));}
+  ctx.lineTo(innerWidth,innerHeight);ctx.lineTo(0,innerHeight);ctx.fill();
+  // Ground
+  const grd=ctx.createLinearGradient(0,innerHeight*.78,0,innerHeight);
+  grd.addColorStop(0,'#1c0e04');grd.addColorStop(1,'#080402');
+  ctx.fillStyle=grd;ctx.fillRect(0,innerHeight*.78,innerWidth,innerHeight*.22);
+  // Trees
+  [.05,.12,.2,.3,.7,.8,.88,.94].forEach((tx,i)=>{
+    const th=innerHeight*(.14+((i*37)%5)*.04);
+    const tw=th*.25,ty=innerHeight*.78-th*.05;
+    ctx.fillStyle=`rgba(5,3,1,${.6+((i*17)%4)*.1})`;
+    ctx.beginPath();ctx.moveTo(tx*innerWidth,ty);
+    ctx.lineTo(tx*innerWidth-tw*.5,ty+th*.35);ctx.lineTo(tx*innerWidth-tw*.35,ty+th*.35);
+    ctx.lineTo(tx*innerWidth-tw*.55,ty+th*.62);ctx.lineTo(tx*innerWidth-tw*.38,ty+th*.62);
+    ctx.lineTo(tx*innerWidth-tw*.62,ty+th*.87);ctx.lineTo(tx*innerWidth-tw*.2,ty+th);
+    ctx.lineTo(tx*innerWidth+tw*.2,ty+th);ctx.lineTo(tx*innerWidth+tw*.62,ty+th*.87);
+    ctx.lineTo(tx*innerWidth+tw*.38,ty+th*.62);ctx.lineTo(tx*innerWidth+tw*.55,ty+th*.62);
+    ctx.lineTo(tx*innerWidth+tw*.35,ty+th*.35);ctx.lineTo(tx*innerWidth+tw*.5,ty+th*.35);ctx.fill();
+  });
+  // Film grain
+  for(let i=0;i<2000;i++){ctx.fillStyle=`rgba(255,255,255,${Math.random()*.022})`;ctx.fillRect(Math.random()*innerWidth,Math.random()*innerHeight,1,1);}
+}
+
+// ═══════════════════════════════════════════════
+// ROLE SCREEN
+// ═══════════════════════════════════════════════
+function buildRoleGrid(){
+  const grid=document.getElementById('roleGrid');
+  grid.innerHTML='';
+  Object.values(ROLES).forEach(r=>{
+    const card=document.createElement('div');
+    card.className='role-card'+(r.id===selectedRole?' sel':'');
+    card.innerHTML=`<div class="role-icon">${r.icon}</div><div class="role-name">${r.name.toUpperCase()}</div><div class="role-desc">${r.desc}</div><div class="role-perks">${r.perks}</div>`;
+    card.onclick=()=>{selectedRole=r.id;buildRoleGrid();};
+    grid.appendChild(card);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// LOADING
+// ═══════════════════════════════════════════════
+function beginLoad(){
+  playerRole=ROLES[selectedRole];
+  showScreen('loading');
+  let pct=0,ti=0;
+  document.getElementById('ldTip').textContent=TIPS[0];
+  const iv=setInterval(()=>{
+    pct+=Math.random()*10+2;
+    if(pct>=100){pct=100;clearInterval(iv);setTimeout(launch,400);}
+    document.getElementById('ldFill').style.width=pct+'%';
+    if(pct>50&&ti===0){ti=1;document.getElementById('ldTip').textContent=TIPS[1];}
+    if(pct>82&&ti===1){ti=2;document.getElementById('ldTip').textContent=TIPS[2];}
+  },200);
+}
+
+
+// ── TRAIN & WILD HORSE STATE ──
+let trainMesh=null, trainDriverNPC=null;
+let onTrain=false, trainDead=false;
+let trainT=0, trainSpd=0;
+const TRAIN_MAX=6;
+let wildHorses=[];
+let lassoActive=false, lassoTarget=null, lassoProgress=0;
+let horseStamina=100, horseBond=0, horseCallCD=0;
+let myHorseName='Brown Mare';
+
+// ═══════════════════════════════════════════════
+// THREE.JS
+// ═══════════════════════════════════════════════
+function initEngine(){
+  const canvas=document.getElementById('gc');
+  R=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
+  R.setSize(innerWidth,innerHeight);
+  R.setPixelRatio(Math.min(devicePixelRatio,2));
+  R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
+  R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.05;
+
+  S=new THREE.Scene();
+  C=new THREE.PerspectiveCamera(68,innerWidth/innerHeight,.05,700);
+  S.fog=new THREE.Fog(0xc8a06e,55,250);
+
+  buildLights();buildWorld();buildTown();buildNature();buildOreNodes();
+  buildPlayerMesh();buildHorse();
+
+  mmCtx=document.getElementById('mm').getContext('2d');
+  buildTrain();
+  buildWildHorses();
+  window.addEventListener('resize',onResize);
+}
+
+function buildLights(){
+  window._ambL=new THREE.AmbientLight(0xffd080,.45);S.add(window._ambL);
+  window._sun=new THREE.DirectionalLight(0xffcc77,2.1);
+  window._sun.position.set(100,130,80);window._sun.castShadow=true;
+  window._sun.shadow.mapSize.set(2048,2048);
+  window._sun.shadow.camera.near=1;window._sun.shadow.camera.far=450;
+  window._sun.shadow.camera.left=-150;window._sun.shadow.camera.right=150;
+  window._sun.shadow.camera.top=150;window._sun.shadow.camera.bottom=-150;
+  window._sun.shadow.bias=-0.0004;S.add(window._sun);
+  window._moonL=new THREE.DirectionalLight(0x4060b0,.25);
+  window._moonL.position.set(-80,100,-60);S.add(window._moonL);
+  const hemi=new THREE.HemisphereLight(0x7aabce,0x8b6a3a,.45);S.add(hemi);
+}
+
+function buildWorld(){
+  S.background=new THREE.Color(0x7aabce);
+  // Terrain
+  const geo=new THREE.PlaneGeometry(350,350,70,70);
+  const pos=geo.attributes.position;
+  for(let i=0;i<pos.count;i++){
+    const x=pos.getX(i),z=pos.getY(i),d=Math.sqrt(x*x+z*z);
+    if(d>20)pos.setZ(i,(Math.sin(x*.05)*Math.cos(z*.045)*3.5+Math.sin(x*.022)*Math.cos(z*.026)*7+Math.sin(x*.09)*1.2)*Math.min((d-20)/35,1));
+  }
+  pos.needsUpdate=true;geo.computeVertexNormals();
+  const gnd=new THREE.Mesh(geo,new THREE.MeshLambertMaterial({color:0x9a7a4a}));
+  gnd.rotation.x=-Math.PI/2;gnd.receiveShadow=true;S.add(gnd);
+  // Road
+  const rd=new THREE.Mesh(new THREE.PlaneGeometry(9,100),new THREE.MeshLambertMaterial({color:0x7a6040}));
+  rd.rotation.x=-Math.PI/2;rd.position.y=.02;S.add(rd);
+  // Cross road
+  const rd2=new THREE.Mesh(new THREE.PlaneGeometry(80,9),new THREE.MeshLambertMaterial({color:0x7a6040}));
+  rd2.rotation.x=-Math.PI/2;rd2.position.set(0,.02,-18);S.add(rd2);
+  // Grass
+  for(let i=0;i<300;i++){
+    const s=.7+Math.random()*1.8;
+    const gp=new THREE.Mesh(new THREE.PlaneGeometry(s,s),new THREE.MeshLambertMaterial({color:new THREE.Color(.42+Math.random()*.18,.36+Math.random()*.1,.14+Math.random()*.07),side:THREE.DoubleSide}));
+    const r=14+Math.random()*155,a=Math.random()*Math.PI*2;
+    gp.position.set(Math.cos(a)*r,.05,Math.sin(a)*r);gp.rotation.x=-Math.PI/2;S.add(gp);
+  }
+  // River
+  const riv=new THREE.Mesh(new THREE.PlaneGeometry(8,80),new THREE.MeshLambertMaterial({color:0x3868a8,transparent:true,opacity:.6}));
+  riv.rotation.x=-Math.PI/2;riv.position.set(65,.06,10);riv.rotation.z=.5;S.add(riv);
+  // Campfire
+  const cf=new THREE.Group();
+  for(let i=0;i<5;i++){
+    const log=new THREE.Mesh(new THREE.CylinderGeometry(.1,.13,1.2,6),new THREE.MeshLambertMaterial({color:0x3a2010}));
+    log.position.set(Math.cos(i*1.26)*.38,.1,Math.sin(i*1.26)*.38);log.rotation.set(Math.PI/2,0,i*1.26);cf.add(log);
+  }
+  cf.position.set(28,0,26);S.add(cf);
+  const fl=new THREE.PointLight(0xff6020,2.8,14);fl.position.set(28,1.2,26);S.add(fl);
+  setInterval(()=>{if(running)fl.intensity=2+Math.random()*2.2;},80);
+}
+
+function buildTown(){
+  // Bronze City - main town
+  makeBuilding(-14,-22,14,9,8,0x7a5a2a,'Saloon',true);
+  makeBuilding(14,-22,10,8,7,0x6a5035,'Sheriff',true);
+  makeBuilding(-14,4,11,7,6,0x7a6040,'General Store',true);
+  makeBuilding(14,4,10,8,6,0x605535,'Bank',true);
+  makeBuilding(-14,26,13,8,5,0x8a7050,'Stables',false);
+  makeBuilding(14,26,9,6,5,0x6a5535,'Smithy',false);
+  makeBuilding(0,-42,8,7,5,0x7a7060,'Church',true);
+  makeBuilding(-24,14,4,4,4,0x6a5535,'',false);
+  makeBuilding(24,14,4,4,4,0x6a5535,'',false);
+  // Water tower
+  makeWaterTower(22,-10);
+  // Fences
+  for(let z=-4;z<=4;z++){
+    [-22,22].forEach(x=>{
+      const p=new THREE.Mesh(new THREE.CylinderGeometry(.06,.07,1.3,6),new THREE.MeshLambertMaterial({color:0x5a4020}));
+      p.position.set(x,.65,z*7);p.castShadow=true;S.add(p);
+    });
+  }
+  // Hitching post rail
+  const rail=new THREE.Mesh(new THREE.BoxGeometry(12,.1,.1),new THREE.MeshLambertMaterial({color:0x5a4020}));
+  rail.position.set(0,1.1,-13.8);S.add(rail);
+}
+
+function makeBuilding(x,z,w,d,h,color,label,hasPorch){
+  const g=new THREE.Group();
+  const mat=new THREE.MeshLambertMaterial({color});
+  const walls=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+  walls.position.y=h/2+.25;walls.castShadow=true;walls.receiveShadow=true;g.add(walls);
+  const fnd=new THREE.Mesh(new THREE.BoxGeometry(w+.3,.3,d+.3),new THREE.MeshLambertMaterial({color:0x5a5040}));
+  fnd.position.y=.15;g.add(fnd);
+  const roofMat=new THREE.MeshLambertMaterial({color:Math.max(0,color-0x222222)});
+  const parapet=new THREE.Mesh(new THREE.BoxGeometry(w+.15,1.5,.22),roofMat);
+  parapet.position.set(0,h+1+.25,d/2+.1);g.add(parapet);
+  const roof=new THREE.Mesh(new THREE.BoxGeometry(w+.2,.35,d+.2),roofMat);
+  roof.position.y=h+.42;g.add(roof);
+  const trim=new THREE.Mesh(new THREE.BoxGeometry(w+.12,.22,.12),new THREE.MeshLambertMaterial({color:0x4a3015}));
+  trim.position.set(0,h+.3,d/2);g.add(trim);
+  if(hasPorch){
+    const porch=new THREE.Mesh(new THREE.BoxGeometry(w,.16,2.6),new THREE.MeshLambertMaterial({color:0x4a3015}));
+    porch.position.set(0,.33,d/2+1.3);g.add(porch);
+    [-w/2+.5,w/2-.5,0].forEach(px=>{
+      const post=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,2.5,6),new THREE.MeshLambertMaterial({color:0x5a4020}));
+      post.position.set(px,1.6,d/2+2.4);post.castShadow=true;g.add(post);
+    });
+    const ovh=new THREE.Mesh(new THREE.BoxGeometry(w,.1,3),new THREE.MeshLambertMaterial({color:0x3a2810}));
+    ovh.position.set(0,2.85,d/2+1.5);g.add(ovh);
+  }
+  const door=new THREE.Mesh(new THREE.BoxGeometry(1.2,2.2,.1),new THREE.MeshLambertMaterial({color:0x3a2010}));
+  door.position.set(0,1.35,d/2+.05);g.add(door);
+  [-w/3,w/3].forEach(wx=>{
+    const win=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.1,.1),new THREE.MeshLambertMaterial({color:0x8090a0,transparent:true,opacity:.45}));
+    win.position.set(wx,h/2+.8,d/2+.05);g.add(win);
+    const wf=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.3,.06),new THREE.MeshLambertMaterial({color:0x4a3020}));
+    wf.position.copy(win.position);wf.position.z-=.03;g.add(wf);
+  });
+  g.position.set(x,0,z);S.add(g);
+  buildings.push({mesh:g,x,z,w,d,label});
+
+  // ── 3D SIGN BOARD ──
+  if(label){
+    // Sign backing board
+    const signW=Math.min(w*0.85, label.length*0.55+1.0);
+    const signGeo=new THREE.BoxGeometry(signW,0.9,0.12);
+    const signMat=new THREE.MeshLambertMaterial({color:0x3a2208});
+    const sign=new THREE.Mesh(signGeo,signMat);
+    sign.position.set(0, h+1.85, d/2+0.08);
+    sign.castShadow=true;
+    g.add(sign);
+    // Sign border frame
+    const frameMat=new THREE.MeshLambertMaterial({color:0xc8922a});
+    const frameH=new THREE.Mesh(new THREE.BoxGeometry(signW+0.14,0.1,0.14),frameMat);
+    const frameH2=frameH.clone();
+    frameH.position.set(0,h+2.35,d/2+0.08); g.add(frameH);
+    frameH2.position.set(0,h+1.35,d/2+0.08); g.add(frameH2);
+    const frameV=new THREE.Mesh(new THREE.BoxGeometry(0.1,1.1,0.14),frameMat);
+    const frameV2=frameV.clone();
+    frameV.position.set(signW/2+0.05,h+1.85,d/2+0.08); g.add(frameV);
+    frameV2.position.set(-signW/2-0.05,h+1.85,d/2+0.08); g.add(frameV2);
+    // Sign hanging chains
+    [-signW/3, signW/3].forEach(cx=>{
+      for(let ci=0;ci<3;ci++){
+        const link=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.14,0.06),
+          new THREE.MeshLambertMaterial({color:0x888860}));
+        link.position.set(cx,h+2.5+ci*0.14,d/2+0.04);
+        g.add(link);
+      }
+    });
+
+    // Text canvas sprite
+    const canvas=document.createElement('canvas');
+    const ctx=canvas.getContext('2d');
+    const fontSize=48;
+    ctx.font=`bold ${fontSize}px serif`;
+    const textW=ctx.measureText(label).width;
+    canvas.width=Math.ceil(textW)+32;
+    canvas.height=fontSize+20;
+    // Background
+    ctx.fillStyle='rgba(42,18,4,0)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    // Text with gold color
+    ctx.font=`bold ${fontSize}px serif`;
+    ctx.fillStyle='#f0c840';
+    ctx.strokeStyle='#3a1a00';
+    ctx.lineWidth=4;
+    ctx.textBaseline='middle';
+    ctx.strokeText(label,16,canvas.height/2);
+    ctx.fillText(label,16,canvas.height/2);
+
+    const tex=new THREE.CanvasTexture(canvas);
+    const spriteMat=new THREE.SpriteMaterial({map:tex,transparent:true});
+    const sprite=new THREE.Sprite(spriteMat);
+    const aspect=canvas.width/canvas.height;
+    sprite.scale.set(signW*0.88,signW*0.88/aspect,1);
+    sprite.position.set(0,h+1.85,d/2+0.15);
+    g.add(sprite);
+  }
+}
+
+function makeWaterTower(x,z){
+  const g=new THREE.Group();
+  const tank=new THREE.Mesh(new THREE.CylinderGeometry(2,2.2,3.5,12),new THREE.MeshLambertMaterial({color:0x5a4020}));
+  tank.position.y=9;tank.castShadow=true;g.add(tank);
+  for(let i=0;i<4;i++){
+    const a=i*Math.PI/2+Math.PI/4;
+    const leg=new THREE.Mesh(new THREE.BoxGeometry(.18,7.5,.18),new THREE.MeshLambertMaterial({color:0x4a3010}));
+    leg.position.set(Math.cos(a)*1.75,3.75,Math.sin(a)*1.75);leg.castShadow=true;g.add(leg);
+  }
+  g.position.set(x,0,z);S.add(g);
+}
+
+function buildNature(){
+  // 180 trees - varied species
+  for(let i=0;i<180;i++){
+    const r=28+Math.random()*130,a=Math.random()*Math.PI*2;
+    const t=makeTree();t.position.set(Math.cos(a)*r,0,Math.sin(a)*r);S.add(t);
+  }
+  // Rocks
+  for(let i=0;i<70;i++){
+    const s=.4+Math.random()*2.2;
+    const rg=new THREE.DodecahedronGeometry(s,1);
+    const rpos=rg.attributes.position;
+    for(let v=0;v<rpos.count;v++){rpos.setX(v,rpos.getX(v)*(.85+Math.random()*.3));rpos.setY(v,rpos.getY(v)*(.85+Math.random()*.3));rpos.setZ(v,rpos.getZ(v)*(.85+Math.random()*.3));}
+    rpos.needsUpdate=true;rg.computeVertexNormals();
+    const rock=new THREE.Mesh(rg,new THREE.MeshLambertMaterial({color:new THREE.Color(.36+Math.random()*.1,.32+Math.random()*.07,.24+Math.random()*.05)}));
+    const r2=15+Math.random()*130,a=Math.random()*Math.PI*2;
+    rock.position.set(Math.cos(a)*r2,s*.32,Math.sin(a)*r2);
+    rock.rotation.set(Math.random()*.8,Math.random()*Math.PI,Math.random()*.8);
+    rock.castShadow=true;rock.receiveShadow=true;S.add(rock);
+  }
+}
+
+function makeTree(){
+  const g=new THREE.Group(),h=5+Math.random()*11,sp=Math.random();
+  if(sp<.48){
+    const tmat=new THREE.MeshLambertMaterial({color:new THREE.Color(.22+Math.random()*.06,.15,.07)});
+    const tr=new THREE.Mesh(new THREE.CylinderGeometry(.11,.22,h,7),tmat);
+    tr.position.y=h/2;tr.castShadow=true;g.add(tr);
+    const layers=3+Math.floor(Math.random()*2);
+    for(let l=0;l<layers;l++){
+      const lr=(layers-l)*1.8+.5;
+      const lm=new THREE.MeshLambertMaterial({color:new THREE.Color(.1+Math.random()*.07,.24+Math.random()*.1,.06+Math.random()*.04)});
+      const leaf=new THREE.Mesh(new THREE.ConeGeometry(lr,h*.44+.8,8),lm);
+      leaf.position.y=h*.5+l*h*.17;leaf.castShadow=true;g.add(leaf);
+    }
+  } else if(sp<.8){
+    const tmat=new THREE.MeshLambertMaterial({color:0x4a3218});
+    const tr=new THREE.Mesh(new THREE.CylinderGeometry(.16,.28,h*.6,8),tmat);
+    tr.position.y=h*.3;tr.castShadow=true;g.add(tr);
+    const cmat=new THREE.MeshLambertMaterial({color:new THREE.Color(.17+Math.random()*.1,.33+Math.random()*.12,.08)});
+    const can=new THREE.Mesh(new THREE.SphereGeometry(h*.23+1,8,7),cmat);
+    can.position.y=h*.76;can.scale.y=.7;can.castShadow=true;g.add(can);
+    for(let i=0;i<3;i++){
+      const sc=new THREE.Mesh(new THREE.SphereGeometry(h*.13+.4,6,5),cmat);
+      sc.position.set(Math.cos(i*2.1)*(h*.13),h*.7+Math.random()*h*.1,Math.sin(i*2.1)*(h*.13));
+      sc.scale.y=.7;g.add(sc);
+    }
+  } else {
+    const cmat=new THREE.MeshLambertMaterial({color:0x3a6a2a});
+    const body=new THREE.Mesh(new THREE.CylinderGeometry(.22,.28,2.5+Math.random()*3,8),cmat);
+    body.position.y=1.4+Math.random();body.castShadow=true;g.add(body);
+    [-1,1].forEach(sx=>{
+      const arm=new THREE.Mesh(new THREE.CylinderGeometry(.13,.15,1.4,7),cmat);
+      arm.position.set(sx*.45,1.9,0);arm.rotation.z=sx*Math.PI/3;arm.castShadow=true;g.add(arm);
+    });
+  }
+  return g;
+}
+
+function buildOreNodes(){
+  oreNodes=[];
+  const positions=[
+    [45,35],[50,30],[55,40],[42,28],[48,22],
+    [-45,35],[-50,30],[-55,40],[-48,22],
+    [45,-35],[50,-30],[55,-40],[42,-28],
+    [-45,-35],[-50,-30],[-55,-40],
+    [60,0],[65,-5],[62,8],[-62,0],[-65,5],
+    [35,-60],[40,-65],[30,-62],[80,20],[85,15],
+  ];
+  positions.forEach(([x,z])=>{
+    const ore=ORES[Math.floor(Math.random()*ORES.length)];
+    const geo=new THREE.DodecahedronGeometry(.55,0);
+    const mesh=new THREE.Mesh(geo,new THREE.MeshLambertMaterial({color:ore.color}));
+    mesh.position.set(x,0.3,z);mesh.castShadow=true;S.add(mesh);
+    oreNodes.push({mesh,ore,depleted:false,respawnTimer:0});
+  });
+}
+
+function buildPlayerMesh(){
+  const g=new THREE.Group();
+  const dkL=new THREE.MeshLambertMaterial({color:0x2a1a0a});
+  const coat=new THREE.MeshLambertMaterial({color:0x4a3018});
+  const skin=new THREE.MeshLambertMaterial({color:0xb8906a});
+  const jeans=new THREE.MeshLambertMaterial({color:0x3a3a5a});
+  const hat=new THREE.MeshLambertMaterial({color:0x1a1005});
+  // Apply role color to coat
+  if(playerRole.id==='sheriff') coat.color.set(0x3a5a3a);
+  else if(playerRole.id==='outlaw') coat.color.set(0x3a1a0a);
+  else if(playerRole.id==='miner') coat.color.set(0x4a4a5a);
+
+  [-0.15,0.15].forEach(x=>{const b=new THREE.Mesh(new THREE.BoxGeometry(.22,.3,.28),dkL);b.position.set(x,.15,.04);b.castShadow=true;g.add(b);});
+  [-0.15,0.15].forEach(x=>{const l=new THREE.Mesh(new THREE.BoxGeometry(.22,.7,.22),jeans);l.position.set(x,.65,0);l.castShadow=true;g.add(l);});
+  const torso=new THREE.Mesh(new THREE.BoxGeometry(.6,.7,.3),coat);torso.position.y=1.1;torso.castShadow=true;g.add(torso);
+  const belt=new THREE.Mesh(new THREE.BoxGeometry(.63,.1,.32),dkL);belt.position.y=.78;g.add(belt);
+  const shld=new THREE.Mesh(new THREE.BoxGeometry(.7,.18,.34),coat);shld.position.y=1.42;g.add(shld);
+  [-0.42,0.42].forEach(x=>{
+    const ua=new THREE.Mesh(new THREE.BoxGeometry(.2,.42,.2),coat);ua.position.set(x,1.12,0);ua.castShadow=true;g.add(ua);
+    const la=new THREE.Mesh(new THREE.BoxGeometry(.18,.36,.18),dkL);la.position.set(x,.77,0);g.add(la);
+  });
+  const neck=new THREE.Mesh(new THREE.CylinderGeometry(.1,.12,.22,6),skin);neck.position.y=1.55;g.add(neck);
+  const head=new THREE.Mesh(new THREE.BoxGeometry(.36,.36,.36),skin);head.position.y=1.78;head.castShadow=true;g.add(head);
+  const jaw=new THREE.Mesh(new THREE.BoxGeometry(.32,.14,.3),new THREE.MeshLambertMaterial({color:0x6a4a38}));jaw.position.y=1.67;g.add(jaw);
+  const brim=new THREE.Mesh(new THREE.CylinderGeometry(.36,.34,.05,12),hat);brim.position.y=1.97;g.add(brim);
+  const crown=new THREE.Mesh(new THREE.CylinderGeometry(.2,.23,.3,12),hat);crown.position.y=2.12;g.add(crown);
+  // Sheriff star
+  if(playerRole.id==='sheriff'){
+    const star=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.04,5),new THREE.MeshLambertMaterial({color:0xf0d040}));
+    star.position.set(.2,1.12,.16);star.rotation.x=Math.PI/2;g.add(star);
+  }
+  // Gun holster
+  const hol=new THREE.Mesh(new THREE.BoxGeometry(.15,.26,.12),dkL);hol.position.set(.38,.88,.1);g.add(hol);
+  const barrel=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.36,8),new THREE.MeshLambertMaterial({color:0x1a1a1a}));
+  barrel.rotation.x=Math.PI/2;barrel.position.set(.42,.92,-.2);g.add(barrel);
+
+  playerMesh=g;playerMesh.position.set(0,0,0);S.add(playerMesh);
+}
+
+function buildHorse(){
+  const g=new THREE.Group();
+  const horseData=SHOP_ITEMS.horses.find(h=>h.id===equippedHorse)||SHOP_ITEMS.horses[0];
+  const mat=new THREE.MeshLambertMaterial({color:horseData.color});
+  const body=new THREE.Mesh(new THREE.BoxGeometry(1.2,.85,2.2),mat);body.position.y=1.1;body.castShadow=true;g.add(body);
+  const neck=new THREE.Mesh(new THREE.BoxGeometry(.45,.65,.45),mat);neck.position.set(0,1.65,.85);neck.rotation.x=-.4;neck.castShadow=true;g.add(neck);
+  const head=new THREE.Mesh(new THREE.BoxGeometry(.38,.38,.65),mat);head.position.set(0,1.95,1.2);head.castShadow=true;g.add(head);
+  for(let i=0;i<4;i++){
+    const leg=new THREE.Mesh(new THREE.BoxGeometry(.22,.88,.22),mat);
+    leg.position.set((i%2?-.4:.4),.44,(i<2?.7:-.7));leg.castShadow=true;g.add(leg);
+  }
+  const mane=new THREE.Mesh(new THREE.BoxGeometry(.12,.45,.55),new THREE.MeshLambertMaterial({color:0x1a1008}));
+  mane.position.set(0,2.05,.8);g.add(mane);
+  const tail=new THREE.Mesh(new THREE.CylinderGeometry(.08,.04,.7,6),new THREE.MeshLambertMaterial({color:0x1a1008}));
+  tail.position.set(0,1.05,-1.2);tail.rotation.x=.6;g.add(tail);
+  // Saddle
+  const saddle=new THREE.Mesh(new THREE.BoxGeometry(.7,.25,1.0),new THREE.MeshLambertMaterial({color:0x5a3010}));
+  saddle.position.set(0,1.55,0);g.add(saddle);
+  horseMesh=g;horseMesh.position.set(5,0,2);S.add(horseMesh);
+}
+
+// ═══════════════════════════════════════════════
+// ENTITY SPAWNING
+// ═══════════════════════════════════════════════
+function makeHumanMesh(c){
+  const g=new THREE.Group(),mat=new THREE.MeshLambertMaterial({color:c});
+  const t=new THREE.Mesh(new THREE.BoxGeometry(.55,.68,.28),mat);t.position.y=1.06;t.castShadow=true;g.add(t);
+  [-0.14,0.14].forEach(x=>{const l=new THREE.Mesh(new THREE.BoxGeometry(.22,.68,.22),mat);l.position.set(x,.54,0);l.castShadow=true;g.add(l);});
+  [-0.38,0.38].forEach(x=>{const a=new THREE.Mesh(new THREE.BoxGeometry(.18,.55,.18),mat);a.position.set(x,1.05,0);a.castShadow=true;g.add(a);});
+  const head=new THREE.Mesh(new THREE.BoxGeometry(.32,.32,.32),new THREE.MeshLambertMaterial({color:0xb8906a}));head.position.y=1.64;head.castShadow=true;g.add(head);
+  const hbrim=new THREE.Mesh(new THREE.CylinderGeometry(.27,.25,.05,10),new THREE.MeshLambertMaterial({color:0x2a1a08}));hbrim.position.y=1.82;g.add(hbrim);
+  const hcrown=new THREE.Mesh(new THREE.CylinderGeometry(.16,.19,.27,10),new THREE.MeshLambertMaterial({color:0x2a1a08}));hcrown.position.y=1.96;g.add(hcrown);
+  const gun=new THREE.Mesh(new THREE.BoxGeometry(.05,.07,.62),new THREE.MeshLambertMaterial({color:0x1a1010}));gun.position.set(.36,.88,-.26);g.add(gun);
+  return g;
+}
+
+function makeAnimalMesh(type){
+  const g=new THREE.Group(),s=type.size||1,mat=new THREE.MeshLambertMaterial({color:type.color});
+  if(type.name==='Rabbit'){
+    const body=new THREE.Mesh(new THREE.SphereGeometry(.24*s,7,6),mat);body.position.y=.3*s;body.castShadow=true;g.add(body);
+    const hd=new THREE.Mesh(new THREE.SphereGeometry(.17*s,6,5),mat);hd.position.set(0,.5*s,.18*s);g.add(hd);
+    [-0.07,0.07].forEach(ex=>{const ear=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.26,5),mat);ear.position.set(ex,.7*s,.12*s);g.add(ear);});
+  } else {
+    const body=new THREE.Mesh(new THREE.BoxGeometry(.75*s,.5*s,1.3*s),mat);body.position.y=.55*s;body.castShadow=true;g.add(body);
+    const hd=new THREE.Mesh(new THREE.BoxGeometry(.38*s,.35*s,.46*s),mat);hd.position.set(0,.8*s,.62*s);hd.castShadow=true;g.add(hd);
+    const nk=new THREE.Mesh(new THREE.BoxGeometry(.2*s,.32*s,.28*s),mat);nk.position.set(0,.68*s,.38*s);nk.rotation.x=.3;g.add(nk);
+    for(let i=0;i<4;i++){
+      const leg=new THREE.Mesh(new THREE.BoxGeometry(.13*s,.42*s,.13*s),mat);
+      leg.position.set((i%2?.28:-.28)*s,.21*s,(i<2?.38:-.38)*s);leg.castShadow=true;g.add(leg);
+    }
+    if(type.name==='Deer'){
+      [-0.15,0.15].forEach(ax=>{const ant=new THREE.Mesh(new THREE.CylinderGeometry(.03,.05,.5,5),new THREE.MeshLambertMaterial({color:0x6a4a20}));ant.position.set(ax,1.12,.52);ant.rotation.z=ax>0?.4:-.4;g.add(ant);});
+    }
+  }
+  return g;
+}
+
+function spawnWave(w){
+  entities.forEach(e=>{if(e.mesh.parent)S.remove(e.mesh);});entities=[];
+  const ec=4+w*2,ac=8+w;
+  for(let i=0;i<ec;i++){
+    const t=ENEMY_TYPES[Math.min(Math.floor(Math.random()*(1+(w>2?1:0)+(w>5?2:0))),ENEMY_TYPES.length-1)];
+    const mesh=makeHumanMesh(t.color);
+    placeEnt(mesh,38+Math.random()*90);S.add(mesh);
+    entities.push({mesh,...t,hp:t.hp,mhp:t.hp,isAnimal:false,dead:false,state:'wander',st:1.5+Math.random()*2.5,dir:rdir()});
+  }
+  for(let i=0;i<ac;i++){
+    const t=ANIMAL_TYPES[Math.min(Math.floor(Math.random()*(3+(w>3?2:0)+(w>6?1:0))),ANIMAL_TYPES.length-1)];
+    const mesh=makeAnimalMesh(t);
+    placeEnt(mesh,22+Math.random()*110);S.add(mesh);
+    entities.push({mesh,...t,hp:t.hp,mhp:t.hp,isAnimal:true,dead:false,state:'wander',st:1+Math.random()*3,dir:rdir()});
+  }
+  bigTxt(w===1?'RIDE INTO LEGEND':'DAY '+w);
+  notify('Day '+w+' - '+(ec)+' outlaws spotted');
+}
+
+function placeEnt(m,dist){const a=Math.random()*Math.PI*2;m.position.set(Math.cos(a)*dist,0,Math.sin(a)*dist);m.rotation.y=Math.random()*Math.PI*2;}
+function rdir(){return new THREE.Vector3(Math.random()-.5,0,Math.random()-.5).normalize();}
+
+// ═══════════════════════════════════════════════
+// GAME LOOP
+// ═══════════════════════════════════════════════
+function gameLoop(ts){
+  if(!running)return;
+  requestAnimationFrame(gameLoop);
+  const dt=Math.min((ts-lastT)/1000,.1);lastT=ts;
+  movePlayer(dt);updateEntities(dt);updateOre(dt);
+  updateTrain(dt);updateWildHorses(dt);
+  updateDayNight(dt);updateCamera();updateMinimap();
+  updateHUD(dt);checkInteractions();
+  R.render(S,C);
+}
+
+// ═══════════════════════════════════════════════
+// PLAYER MOVEMENT
+// ═══════════════════════════════════════════════
+function movePlayer(dt){
+  const sprint=K.ShiftLeft&&sp>5;
+  let baseSpd=onHorse?(horseSpeed*14):(sprint?11:7);
+  let mx=0,mz=0,mov=false;
+  if(K.KeyW||K.ArrowUp)   {mx-=Math.sin(yaw)*baseSpd*dt;mz-=Math.cos(yaw)*baseSpd*dt;mov=true;}
+  if(K.KeyS||K.ArrowDown) {mx+=Math.sin(yaw)*baseSpd*dt;mz+=Math.cos(yaw)*baseSpd*dt;mov=true;}
+  if(K.KeyA||K.ArrowLeft) {mx-=Math.cos(yaw)*baseSpd*dt;mz+=Math.sin(yaw)*baseSpd*dt;mov=true;}
+  if(K.KeyD||K.ArrowRight){mx+=Math.cos(yaw)*baseSpd*dt;mz-=Math.sin(yaw)*baseSpd*dt;mov=true;}
+  playerMesh.position.x=Math.max(-165,Math.min(165,playerMesh.position.x+mx));
+  playerMesh.position.z=Math.max(-165,Math.min(165,playerMesh.position.z+mz));
+  if(onHorse){horseMesh.position.copy(playerMesh.position);horseMesh.position.y=0;}
+  if(mov){playerMesh.rotation.y=-yaw;if(onHorse)horseMesh.rotation.y=-yaw;if(sprint)sp=Math.max(0,sp-dt*18);}
+  else sp=Math.min(100,sp+dt*13);
+  if(deActive){de=Math.max(0,de-dt*18);if(de<=0)stopDE();}
+  else de=Math.min(100,de+dt*5);
+  if(reloading){reloadT-=dt;if(reloadT<=0){ammo=maxAmmo;reloading=false;notify('Reloaded');}}
+  // Body bob
+  if(mov&&!onHorse)playerMesh.position.y=Math.sin(lastT*.01)*.03;
+  else if(!onHorse)playerMesh.position.y=0;
+  else playerMesh.position.y=1.3; // on horse
+}
+
+// ═══════════════════════════════════════════════
+// ENTITY AI
+// ═══════════════════════════════════════════════
+function updateEntities(dt){
+  const pp=playerMesh.position;
+  let alive=0;
+  entities.forEach(e=>{
+    if(e.dead||!e.mesh.parent)return;alive++;
+    // Hogtied — freeze movement, skip AI
+    if(e.hogtied){ e.mesh.rotation.x=0.4; return; }
+    const dist=e.mesh.position.distanceTo(pp);
+    e.st-=dt;
+    if(e.st<=0){
+      e.st=1+Math.random()*2;
+      if(e.isAnimal){
+        if(e.hostile&&dist<18)e.state='attack';
+        else e.state=dist<20?'flee':'wander';
+      } else {
+        const shouldChase=(e.chasesOutlaws&&playerRole.id==='outlaw')||(playerRole.id!=='sheriff'&&wanted>0)||(!e.chasesOutlaws);
+        e.state=dist<50&&shouldChase?'attack':'wander';
+      }
+      if(e.state==='wander')e.dir=rdir();
+    }
+    let spd=e.spd;
+    if(e.state==='attack'){const tp=new THREE.Vector3().subVectors(pp,e.mesh.position).normalize();e.dir.lerp(tp,.15);spd*=1.45;}
+    else if(e.state==='flee'){const fp=new THREE.Vector3().subVectors(e.mesh.position,pp).normalize();e.dir.lerp(fp,.15);spd*=1.9;}
+    e.mesh.position.x=Math.max(-165,Math.min(165,e.mesh.position.x+e.dir.x*spd*60*dt));
+    e.mesh.position.z=Math.max(-165,Math.min(165,e.mesh.position.z+e.dir.z*spd*60*dt));
+    e.mesh.rotation.y=Math.atan2(e.dir.x,e.dir.z);
+    // Leg anim
+    const sw=Math.sin(lastT*.008)*.3;
+    const ls=e.isAnimal?3:2;
+    for(let i=ls;i<ls+4&&i<e.mesh.children.length;i++)e.mesh.children[i].rotation.x=(i%2===0?1:-1)*sw*(e.state!=='wander'?1.5:1);
+    // Attacks
+    if(e.state==='attack'){
+      if(dist<2.8){const d=e.name==='Bear'?18:e.name==='Wolf'||e.name==='Cougar'?9:7;hp=Math.max(0,hp-d*dt*2);flash();}
+      if(!e.isAnimal&&dist<45&&Math.random()<dt*.3){hp=Math.max(0,hp-5);flash();}
+      if(hp<=0)die();
+    }
+  });
+  if(alive===0&&running){wave++;setTimeout(()=>spawnWave(wave),2200);}
+}
+
+// ═══════════════════════════════════════════════
+// ORE RESPAWN
+// ═══════════════════════════════════════════════
+function updateOre(dt){
+  oreNodes.forEach(n=>{
+    if(n.depleted){n.respawnTimer-=dt;if(n.respawnTimer<=0){n.depleted=false;n.mesh.visible=true;}}
+  });
+}
+
+// ═══════════════════════════════════════════════
+// DAY / NIGHT
+// ═══════════════════════════════════════════════
+const _DN={
+  nS:new THREE.Color(0x060810),nF:new THREE.Color(0x0a0d18),nSn:new THREE.Color(0x4050a0),
+  dwS:new THREE.Color(0x3a2818),dwF:new THREE.Color(0xb87840),dwSn:new THREE.Color(0xff8822),
+  dS:new THREE.Color(0x7aabce),dF:new THREE.Color(0xc0a06e),dSn:new THREE.Color(0xffe88a),
+  dkS:new THREE.Color(0x7a3818),dkF:new THREE.Color(0x9a5030),dkSn:new THREE.Color(0xff6020),
+};
+function _lc(a,b,t){return new THREE.Color().copy(a).lerp(b,Math.max(0,Math.min(1,t)));}
+
+function updateDayNight(dt){
+  gTime=(gTime+dt*1.6)%1440;const h=gTime/60;
+  let sC,fC,snC,sI,aI;
+  if(h<4.5){sC=_DN.nS;fC=_DN.nF;snC=_DN.nSn;sI=.08;aI=.15;}
+  else if(h<6.5){const t=(h-4.5)/2;sC=_lc(_DN.nS,_DN.dwS,t);fC=_lc(_DN.nF,_DN.dwF,t);snC=_lc(_DN.nSn,_DN.dwSn,t);sI=t*1.8;aI=.15+t*.35;}
+  else if(h<17){const t=Math.min((h-6.5)/2,1);sC=_lc(_DN.dwS,_DN.dS,t);fC=_lc(_DN.dwF,_DN.dF,t);snC=_lc(_DN.dwSn,_DN.dSn,t);sI=1.8+t*.4;aI=.45+t*.1;}
+  else if(h<20){const t=(h-17)/3;sC=_lc(_DN.dS,_DN.dkS,t);fC=_lc(_DN.dF,_DN.dkF,t);snC=_lc(_DN.dSn,_DN.dkSn,t);sI=2.2-t*2.1;aI=.55-t*.4;}
+  else{const t=Math.min((h-20)/2,1);sC=_lc(_DN.dkS,_DN.nS,t);fC=_lc(_DN.dkF,_DN.nF,t);snC=_lc(_DN.dkSn,_DN.nSn,t);sI=(1-t)*.15;aI=.15;}
+  S.background.copy(sC);S.fog.color.copy(fC);window._sun.color.copy(snC);
+  window._sun.intensity=sI;window._ambL.intensity=aI;
+  window._moonL.intensity=(h<6||h>20)?.5:0;
+  const ang=(gTime/1440)*Math.PI*2-Math.PI/2;
+  window._sun.position.set(Math.cos(ang)*150,Math.sin(ang)*150,60);
+  window._moonL.position.set(Math.cos(ang+Math.PI)*120,Math.sin(ang+Math.PI)*100,-60);
+}
+
+// ═══════════════════════════════════════════════
+// CAMERA
+// ═══════════════════════════════════════════════
+function updateCamera(){
+  const pp=playerMesh.position;
+  if(currentView==='tps'){
+    const ox=Math.sin(yaw+.3)*5.5,oz=Math.cos(yaw+.3)*5.5;
+    camTarget.lerp(new THREE.Vector3(pp.x+ox,pp.y+(onHorse?3.5:2.8),pp.z+oz),.1);
+    C.position.copy(camTarget);
+    C.lookAt(pp.x-Math.sin(yaw)*10,pp.y+(onHorse?2.2:1.3),pp.z-Math.cos(yaw)*10);
+    playerMesh.visible=true;if(horseMesh)horseMesh.visible=onHorse;
+  } else if(currentView==='fps'){
+    C.position.set(pp.x,pp.y+(onHorse?2.8:1.72),pp.z);
+    const d=new THREE.Vector3(-Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(yaw)*Math.cos(pitch));
+    C.lookAt(pp.x+d.x*10,pp.y+(onHorse?2.8:1.72)+d.y*10,pp.z+d.z*10);
+    playerMesh.visible=false;if(horseMesh)horseMesh.visible=false;
+  } else {
+    C.position.set(pp.x,90,pp.z+2);C.lookAt(pp.x,pp.y,pp.z);
+    playerMesh.visible=true;if(horseMesh)horseMesh.visible=true;
+  }
+}
+
+// ═══════════════════════════════════════════════
+// INTERACTIONS
+// ═══════════════════════════════════════════════
+function checkInteractions(){
+  const pp=playerMesh.position;
+  nearbyInteract=null;
+  let msg='';
+
+  // Horse mount
+  const hd=horseMesh.position.distanceTo(pp);
+  if(hd<4&&!onHorse){nearbyInteract='horse';msg='[E] Mount Horse';}
+  else if(onHorse){msg='[E] Dismount';}
+
+  // Buildings
+  buildings.forEach(b=>{
+    const bx=Math.abs(pp.x-b.x),bz=Math.abs(pp.z-b.z);
+    if(bx<b.w/2+4&&bz<b.d/2+5){
+      if(b.label==='General Store'){nearbyInteract='shop_general';msg='[E] General Store  ·  [T] Browse';}
+      else if(b.label==='Stables'){nearbyInteract='shop_horses';msg='[E] Stables  ·  [T] Browse Horses';}
+      else if(b.label==='Bank'&&playerRole.id==='outlaw'){nearbyInteract='bank';msg='[B] Rob the Bank 💰  ·  Wanted ↑';}
+      else if(b.label==='Bank'){nearbyInteract='sell';msg='[E] or [B] Sell Loot at Bank';}
+      else if(b.label==='Sheriff'&&playerRole.id==='sheriff'){nearbyInteract='sheriff';msg='[E] or [B] Collect Bounties ⭐';}
+      else if(b.label==='Saloon'){nearbyInteract='saloon';msg='[E] Saloon - Rest & restore';}
+    }
+  });
+
+  // Train
+  if(trainMesh){
+    const distT=playerMesh.position.distanceTo(trainMesh.position);
+    if(distT<7){
+      if(!trainDead){ nearbyInteract='train_kill'; msg='[E] Kill Train Driver to board'; }
+      else if(!onTrain){ nearbyInteract='train_board'; msg='[E] Board Locomotive (W/S = throttle)'; }
+      else{ nearbyInteract='train_exit'; msg='[E] Jump off Train'; }
+    }
+  }
+  // Wild horses
+  wildHorses.forEach(wh=>{
+    if(!wh.tamed&&wh.mesh.position.distanceTo(playerMesh.position)<20&&!lassoActive){
+      nearbyInteract='wildhorses'; msg='[L] Lasso Wild '+wh.name+' (in range)';
+    }
+  });
+  if(lassoTarget&&!lassoTarget.tamed){
+    const ld=lassoTarget.mesh.position.distanceTo(playerMesh.position);
+    const lt=lassoTarget._lassoType;
+    if(lt==='horse'){
+      if(ld<3){ nearbyInteract='pet_horse'; msg='Hold [Z] to Pet & Tame '+lassoTarget.name; }
+      else{ nearbyInteract='pull_horse'; msg='Pull horse close ('+Math.floor(ld)+'m) then hold Z'; }
+    } else if(lt==='enemy'){
+      if(ld<3){ nearbyInteract='collect_bounty'; msg='[E] Collect Bounty - '+lassoTarget.name+' ($'+(lassoTarget.reward||40)+')'; }
+      else{ nearbyInteract='pull_enemy'; msg='Dragging '+lassoTarget.name+' ('+Math.floor(ld)+'m away)'; }
+    } else if(lt==='animal'){
+      if(ld<3){ nearbyInteract='sell_animal'; msg='[E] Sell '+lassoTarget.name+' alive (x2 value!)'; }
+      else{ nearbyInteract='pull_animal'; msg='Dragging '+lassoTarget.name+' ('+Math.floor(ld)+'m away)'; }
+    }
+  }
+  // Ore nodes
+  oreNodes.forEach(n=>{
+    if(!n.depleted&&n.mesh.position.distanceTo(pp)<3){nearbyInteract='ore';msg='[G] Mine '+n.ore.name+' Ore ($'+n.ore.value+')';}
+  });
+
+  // Animals
+  entities.forEach(e=>{
+    if(e.isAnimal&&!e.dead&&e.mesh.parent&&e.mesh.position.distanceTo(pp)<3.5){nearbyInteract='hunt';msg='[H] Hunt '+e.name;}
+  });
+
+  const el=document.getElementById('actionPrompt');
+  if(msg){el.textContent=msg;el.classList.add('show');}
+  else el.classList.remove('show');
+}
+
+// ═══════════════════════════════════════════════
+// MINIMAP
+// ═══════════════════════════════════════════════
+function updateMinimap(){
+  const ctx=mmCtx,W=145,H=145,SC=W/260;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='rgba(5,3,1,.92)';ctx.fillRect(0,0,W,H);
+  const ox=W/2-playerMesh.position.x*SC,oy=H/2-playerMesh.position.z*SC;
+  // Road
+  ctx.fillStyle='rgba(80,60,28,.6)';ctx.fillRect(W/2-4*SC-playerMesh.position.x*SC+playerMesh.position.x*SC,0,9*SC,H);
+  // Buildings
+  ctx.fillStyle='rgba(110,80,40,.7)';
+  buildings.forEach(b=>ctx.fillRect(ox+(b.x-b.w/2)*SC,oy+(b.z-b.d/2)*SC,b.w*SC,b.d*SC));
+  // Wild horses - white dots
+  ctx.fillStyle='rgba(255,255,200,.7)';
+  wildHorses.forEach(wh=>{
+    if(!wh.tamed){const x=ox+wh.mesh.position.x*SC,y=oy+wh.mesh.position.z*SC;ctx.beginPath();ctx.arc(x,y,3.5,0,Math.PI*2);ctx.fill();}
+  });
+  // Train - blue dot
+  if(trainMesh){const tx=ox+trainMesh.position.x*SC,ty=oy+trainMesh.position.z*SC;ctx.fillStyle='rgba(80,140,220,.9)';ctx.beginPath();ctx.arc(tx,ty,5,0,Math.PI*2);ctx.fill();}
+  // Ore nodes
+  ctx.fillStyle='rgba(200,200,60,.5)';
+  oreNodes.forEach(n=>{if(!n.depleted){const x=ox+n.mesh.position.x*SC,y=oy+n.mesh.position.z*SC;ctx.beginPath();ctx.arc(x,y,2,0,Math.PI*2);ctx.fill();}});
+  // Entities
+  entities.forEach(e=>{
+    if(e.dead||!e.mesh.parent)return;
+    const x=ox+e.mesh.position.x*SC,y=oy+e.mesh.position.z*SC;
+    ctx.fillStyle=e.isAnimal?'rgba(150,90,30,.8)':'rgba(220,50,40,.9)';
+    ctx.beginPath();ctx.arc(x,y,e.isAnimal?2:3,0,Math.PI*2);ctx.fill();
+  });
+  // Horse
+  if(!onHorse){const x=ox+horseMesh.position.x*SC,y=oy+horseMesh.position.z*SC;ctx.fillStyle='rgba(180,130,60,.7)';ctx.beginPath();ctx.arc(x,y,3.5,0,Math.PI*2);ctx.fill();}
+  // Player
+  ctx.fillStyle='#c8922a';ctx.beginPath();ctx.arc(W/2,H/2,4.5,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#c8922a';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(W/2,H/2);ctx.lineTo(W/2-Math.sin(yaw)*11,H/2-Math.cos(yaw)*11);ctx.stroke();
+  // Compass ring
+  ctx.strokeStyle='rgba(200,150,60,.18)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(W/2,H/2,H/2-2,0,Math.PI*2);ctx.stroke();
+}
+
+// ═══════════════════════════════════════════════
+// HUD UPDATE
+// ═══════════════════════════════════════════════
+function updateHUD(dt){
+  setRing('hpRing',hp,CIRC);setRing('spRing',sp,CIRC);setRing('deRing',de,CIRC);
+  document.getElementById('honorFill').style.width=honor+'%';
+  document.getElementById('moneyVal').textContent='$'+Math.floor(money);
+  // Ammo
+  const ab=document.getElementById('ammoBullets');ab.innerHTML='';
+  for(let i=0;i<maxAmmo;i++){const b=document.createElement('div');b.className='bullet '+(i<ammo?'f':'e');ab.appendChild(b);}
+  document.getElementById('ammoLbl').textContent=reloading?'↻ RELOADING':equippedWeapon.toUpperCase()+' '+ammo+'/'+maxAmmo;
+  // Time
+  const h=Math.floor(gTime/60),m=Math.floor(gTime%60);
+  const period=h<5?'NIGHT':h<7?'DAWN':h<12?'MORNING':h<17?'AFTERNOON':h<20?'DUSK':'NIGHT';
+  document.getElementById('timeLbl').textContent=period+' · '+h+':'+(m<10?'0':'')+m;
+  // Wanted
+  for(let i=1;i<=5;i++)document.getElementById('ws'+i).classList.toggle('lit',i<=wanted);
+  const wt=document.getElementById('wantedTxt');
+  wt.textContent=wanted>0?'WANTED - DEAD OR ALIVE':'Reputation';
+  wt.className='wanted-txt'+(wanted>0?' hot':'');
+  if(wantedDecay>0){wantedDecay-=dt;if(wantedDecay<=0&&wanted>0){wanted=Math.max(0,wanted-1);wantedDecay=32;}}
+  // Inventory display
+  updateInvDisplay();
+  // Skills display
+  updateSkillsDisplay();
+}
+
+function setRing(id,val,circ){const el=document.getElementById(id);if(el)el.style.strokeDashoffset=(1-val/100)*circ;}
+
+function updateInvDisplay(){
+  const row=document.getElementById('invRow');
+  row.innerHTML='';
+  if(inventory.ore.length>0){
+    const sl=document.createElement('div');sl.className='inv-slot';sl.innerHTML='🪨<span class="qty">'+inventory.ore.length+'</span>';row.appendChild(sl);
+  }
+  if(inventory.pelts.length>0){
+    const sl=document.createElement('div');sl.className='inv-slot';sl.innerHTML='🦌<span class="qty">'+inventory.pelts.length+'</span>';row.appendChild(sl);
+  }
+  if(inventory.gold>0){
+    const sl=document.createElement('div');sl.className='inv-slot';sl.innerHTML='🥇<span class="qty">'+inventory.gold+'</span>';row.appendChild(sl);
+  }
+  if(inventory.dynamite>0){
+    const sl=document.createElement('div');sl.className='inv-slot';sl.innerHTML='🧨<span class="qty">'+inventory.dynamite+'</span>';row.appendChild(sl);
+  }
+  if(inventory.bandages>0){
+    const sl=document.createElement('div');sl.className='inv-slot';sl.innerHTML='🩹<span class="qty">'+inventory.bandages+'</span>';row.appendChild(sl);
+  }
+}
+
+function updateSkillsDisplay(){
+  const sa=document.getElementById('skillArea');sa.innerHTML='';
+  const colors={hunting:'#c8922a',mining:'#8a8aba',thieving:'#c03838',justice:'#5aba5a',survival:'#4a9a9a'};
+  Object.keys(skills).forEach(sk=>{
+    const lvl=skills[sk],xp=skillXP[sk];
+    const nextXP=SKILL_LEVELS[Math.min(lvl+1,SKILL_LEVELS.length-1)];
+    const pct=lvl>=10?100:Math.round(xp/nextXP*100);
+    const row=document.createElement('div');row.className='skill-row';
+    row.innerHTML=`<span class="skill-name">${sk}</span><div class="skill-bar"><div class="skill-fill" style="width:${pct}%;background:${colors[sk]}"></div></div><span class="skill-lvl">${lvl}</span>`;
+    sa.appendChild(row);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// SKILL XP
+// ═══════════════════════════════════════════════
+function addSkillXP(skill,amt){
+  skillXP[skill]+=amt;
+  const lvl=skills[skill];
+  if(lvl<10&&skillXP[skill]>=SKILL_LEVELS[lvl+1]){
+    skills[skill]++;
+    notify('⬆ '+skill.toUpperCase()+' Level '+skills[skill]+'!');
+  }
+}
+
+// ═══════════════════════════════════════════════
+// SHOOTING
+// ═══════════════════════════════════════════════
+function shoot(){
+  if(!running||!locked||ammo<=0||reloading)return;
+  ammo--;
+  const raycaster=new THREE.Raycaster();
+  const camP=C.position.clone();
+  let dir=new THREE.Vector3(-Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(yaw)*Math.cos(pitch));
+  if(currentView==='top'){
+    let near=null,nd=9999;
+    entities.filter(e=>!e.dead&&e.mesh.parent).forEach(e=>{const d=e.mesh.position.distanceTo(playerMesh.position);if(d<nd){nd=d;near=e;}});
+    if(!near||nd>28)return;
+    dir=new THREE.Vector3().subVectors(near.mesh.position,camP).normalize();
+  }
+  const spread=deActive?0:.014;
+  dir.x+=(Math.random()-.5)*spread;dir.z+=(Math.random()-.5)*spread;dir.normalize();
+  raycaster.set(camP,dir);
+
+  // ── Check train hit ──
+  if(trainMesh&&!trainDead){
+    const trainHits=raycaster.intersectObject(trainMesh,true);
+    if(trainHits.length>0){
+      trainDead=true;
+      trainSpd=0;
+      // Flash train red
+      trainMesh.children.forEach(c=>{
+        if(c.material){
+          const orig=c.material.color.clone();
+          c.material.color.set(0xff3322);
+          setTimeout(()=>c.material.color.copy(orig),200);
+        }
+      });
+      // Remove driver if still alive
+      if(trainDriverNPC&&trainDriverNPC.parent){
+        trainDriverNPC.parent.remove(trainDriverNPC);
+        trainDriverNPC=null;
+      }
+      bigTxt('TRAIN STOPPED!');
+      notify('🚂 Train shot — engine dead! Board with E.');
+      addKill('🚂 Train stopped by gunshot');
+      wanted=Math.min(5,wanted+1); wantedDecay=30;
+      if(ammo===0)setTimeout(()=>{reloading=true;reloadT=2.3;},30);
+      return;
+    }
+  }
+
+  // ── Check entity hits ──
+  const tgts=entities.filter(e=>!e.dead&&e.mesh.parent).map(e=>e.mesh);
+  const hits=raycaster.intersectObjects(tgts,true);
+  if(hits.length>0){
+    let obj=hits[0].object;
+    while(obj.parent&&!entities.find(e=>e.mesh===obj))obj=obj.parent;
+    const ent=entities.find(e=>e.mesh===obj);
+    if(ent){ent.hp-=deActive?3:1;redFlash(ent.mesh);if(ent.hp<=0)killEnt(ent);}
+  }
+  if(ammo===0)setTimeout(()=>{reloading=true;reloadT=2.3;},30);
+}
+
+function redFlash(mesh){mesh.children.forEach(c=>{if(!c.material)return;const o=c.material.color.clone();c.material.color.set(0xff4444);setTimeout(()=>c.material.color.copy(o),90);});}
+
+function killEnt(e){
+  S.remove(e.mesh);e.dead=true;score+=e.pts;
+  if(e.isAnimal){
+    money+=e.reward*playerRole.cashMult;
+    inventory.pelts.push({name:e.name,value:e.reward});
+    addSkillXP('hunting',40+e.pts);
+    addKill('🦌 '+e.name+' - Pelt +$'+Math.floor(e.reward*playerRole.cashMult));
+    honor=Math.min(100,honor+.5);
+  } else {
+    money+=e.reward*playerRole.cashMult;
+    addSkillXP(playerRole.id==='sheriff'?'justice':'thieving',50+e.pts);
+    addKill('💀 '+e.name+(e.reward>0?' +$'+Math.floor(e.reward*playerRole.cashMult):''));
+    if(e.name==='Lawman'){wanted=Math.min(5,wanted+2);wantedDecay=40;honor=Math.max(0,honor-8);}
+    else if(playerRole.id!=='sheriff'){wanted=Math.min(5,wanted+1);wantedDecay=35;}
+  }
+}
+
+function doMine(){
+  const pp=playerMesh.position;
+  let mined=false;
+  oreNodes.forEach(n=>{
+    if(!n.depleted&&n.mesh.position.distanceTo(pp)<3){
+      n.depleted=true;n.mesh.visible=false;n.respawnTimer=60+Math.random()*60;
+      const ore=n.ore;
+      const qty=1+Math.floor(skills.mining*.3);
+      for(let i=0;i<qty;i++)inventory.ore.push({name:ore.name,value:ore.value});
+      money+=ore.value*qty*playerRole.cashMult;
+      addSkillXP('mining',30+ore.value);
+      addKill('⛏ Mined '+qty+'× '+ore.name+' +$'+Math.floor(ore.value*qty*playerRole.cashMult));
+      mined=true;
+    }
+  });
+  if(!mined)notify('No ore nearby. Look for glowing nodes on the minimap.');
+}
+
+function doHunt(){
+  const pp=playerMesh.position;
+  let hunted=false;
+  entities.forEach(e=>{
+    if(e.isAnimal&&!e.dead&&e.mesh.parent&&e.mesh.position.distanceTo(pp)<3.5){
+      killEnt(e);hunted=true;
+    }
+  });
+  if(!hunted)notify('No animals nearby to hunt.');
+}
+
+function doBank(){
+  if(playerRole.id==='outlaw'){
+    // Rob bank
+    const robAmt=200+Math.floor(Math.random()*300)*playerRole.cashMult;
+    money+=robAmt;wanted=Math.min(5,wanted+3);wantedDecay=50;
+    addSkillXP('thieving',80);honor=Math.max(0,honor-12);
+    inventory.gold+=2;
+    bigTxt('BANK ROBBED!');notify('💰 Bank robbed! +$'+Math.floor(robAmt)+' | Wanted ↑');
+  } else {
+    // Sell loot
+    let total=0;
+    inventory.pelts.forEach(p=>total+=p.value);
+    inventory.ore.forEach(o=>total+=o.value);
+    total+=inventory.gold*50;
+    total=Math.floor(total*playerRole.cashMult);
+    money+=total;inventory.pelts=[];inventory.ore=[];inventory.gold=0;
+    if(total>0){notify('Sold all loot for $'+total);addKill('🏦 Loot sold: +$'+total);}
+    else notify('Nothing to sell. Go hunt or mine first!');
+  }
+}
+
+function doSheriff(){
+  if(wanted>0){
+    const bounty=wanted*80;money+=bounty;wanted=0;wantedDecay=0;
+    addSkillXP('justice',100);honor=Math.min(100,honor+15);
+    notify('⭐ Bounties collected! +$'+bounty);
+  } else notify('No active bounties right now.');
+}
+
+// ═══════════════════════════════════════════════
+// SHOPS
+// ═══════════════════════════════════════════════
+function openShop(type){
+  if(document.pointerLockElement)document.exitPointerLock();
+  const panel=document.getElementById('shopPanel');
+  const grid=document.getElementById('shopGrid');
+  const items=type==='horses'?SHOP_ITEMS.horses:SHOP_ITEMS.general;
+  document.getElementById('shopTitle').textContent=type==='horses'?'🐴 Stables':'🏪 General Store';
+  document.getElementById('shopSub').textContent=type==='horses'?'Buy horses - better horses mean faster travel':'Buy weapons, tools and supplies - Cash: $'+Math.floor(money);
+  grid.innerHTML='';
+  items.forEach(item=>{
+    const el=document.createElement('div');
+    const isOwned=ownedItems.includes(item.id)||item.owned;
+    el.className='shop-item'+(isOwned?' owned':'');
+    el.innerHTML=`<div class="si-icon">${item.icon}</div><div class="si-name">${item.name}</div><div class="si-price">${isOwned?'✓ Owned':'$'+item.price}</div><div class="si-desc">${item.desc}</div>`;
+    el.onclick=()=>buyItem(item,type);
+    grid.appendChild(el);
+  });
+  panel.classList.add('open');
+}
+
+function buyItem(item,shopType){
+  if(ownedItems.includes(item.id)){
+    // Already owned — equip or use it
+    if(item.type==='weapon'){equippedWeapon=item.id;maxAmmo=item.ammo;ammo=Math.min(ammo,maxAmmo);notify('Equipped: '+item.name);}
+    else if(item.type==='horse'){equippedHorse=item.id;horseSpeed=item.speed;rebuildHorse();notify('Mounted: '+item.name);}
+    else if(item.type==='consumable'){useItem(item);notify('Used: '+item.name);}
+    // Close shop after equipping/using
+    closePanel('shopPanel');
+    return;
+  }
+  if(money<item.price){notify('Not enough cash! Need $'+item.price);return;}
+  // Purchase
+  money-=item.price;
+  ownedItems.push(item.id);
+  if(item.type==='weapon'){equippedWeapon=item.id;maxAmmo=item.ammo;ammo=maxAmmo;}
+  else if(item.type==='horse'){equippedHorse=item.id;horseSpeed=item.speed;rebuildHorse();}
+  else if(item.type==='consumable'){useItem(item);}
+  notify('Purchased: '+item.name+' — $'+item.price+' spent');
+  addKill('🛒 Bought: '+item.name);
+  // Close shop — player must re-open to buy more
+  closePanel('shopPanel');
+}
+
+function useItem(item){
+  if(item.id==='bandage'){hp=Math.min(100,hp+30);notify('Bandage used +30 HP');}
+  else if(item.id==='ammo_pack'){ammo=maxAmmo;notify('Ammo refilled');}
+  else if(item.id==='dynamite'){inventory.dynamite+=3;notify('Dynamite added ×3');}
+  else if(item.id==='campfire'){addSkillXP('survival',20);hp=Math.min(100,hp+15);notify('Rested at campfire +15 HP');}
+}
+
+function rebuildHorse(){S.remove(horseMesh);buildHorse();}
+
+function openSkillsPanel(){
+  const det=document.getElementById('skillsDetail');det.innerHTML='';
+  const colors={hunting:'#c8922a',mining:'#8a8aba',thieving:'#c03838',justice:'#5aba5a',survival:'#4a9a9a'};
+  Object.keys(skills).forEach(sk=>{
+    const lvl=skills[sk],xp=skillXP[sk];
+    const next=lvl<10?SKILL_LEVELS[lvl+1]:SKILL_LEVELS[10];
+    const pct=lvl>=10?100:Math.round(xp/next*100);
+    const descs={hunting:'Hunt animals for pelts & meat',mining:'Mine ore nodes for resources',thieving:'Rob banks & steal valuables',justice:'Arrest outlaws & collect bounties',survival:'Heal & survive in the wilderness'};
+    const perks={hunting:['Better pelt prices','Animal radar','Silent movement','Master tracker'],mining:['Faster mining','Detect ore veins','Double yield','Gold sense'],thieving:['Lockpick speed','Better heist payout','Evade detection','Master thief'],justice:['Higher bounties','Arrest from range','Deputy badge','Sheriff legend'],survival:['Better HP regen','Campfire bonus','Horse bond','Frontier legend']};
+    const perkList=(perks[sk]||[]).map((p,i)=>`<span style="color:${i<lvl?colors[sk]:'rgba(200,165,90,.25)'}">Lv${i+2}: ${p}</span>`).join(' · ');
+    const div=document.createElement('div');div.style.cssText='margin-bottom:18px;padding:14px;border:1px solid rgba(200,150,60,.15);background:rgba(0,0,0,.3)';
+    div.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-family:Cinzel,serif;font-size:15px;color:${colors[sk]};letter-spacing:.1em;text-transform:uppercase">${sk}</span><span style="font-family:Cinzel,serif;font-size:20px;color:${colors[sk]}">Lv ${lvl}</span></div><div style="font-size:12px;color:rgba(200,165,90,.5);margin-bottom:8px">${descs[sk]}</div><div style="height:4px;background:rgba(255,255,255,.08);margin-bottom:8px"><div style="height:100%;width:${pct}%;background:${colors[sk]};transition:width .4s"></div></div><div style="font-size:11px;color:rgba(200,165,90,.45);margin-bottom:8px">${xp} / ${next} XP</div><div style="font-size:10px;line-height:1.8;color:rgba(200,165,90,.4)">${perkList}</div>`;
+    det.appendChild(div);
+  });
+  document.getElementById('skillsPanel').classList.add('open');
+  if(document.pointerLockElement)document.exitPointerLock();
+}
+
+function closePanel(id){document.getElementById(id).classList.remove('open');setTimeout(()=>{if(running)doLock();},300);}
+
+
+// ═══════════════════════════════════════════════
+// BUILD TRAIN
+// ═══════════════════════════════════════════════
+function buildTrain(){
+  const g=new THREE.Group();
+  const steelMat=new THREE.MeshLambertMaterial({color:0x2a2a3a});
+  const woodMat=new THREE.MeshLambertMaterial({color:0x3a2a1a});
+  const darkMat=new THREE.MeshLambertMaterial({color:0x0a0a0a});
+  const redMat=new THREE.MeshLambertMaterial({color:0x8a1a1a});
+
+  // Main loco body
+  const locoBase=new THREE.Mesh(new THREE.BoxGeometry(3.0,1.6,7),steelMat);
+  locoBase.position.y=1.2; locoBase.castShadow=true; g.add(locoBase);
+  // Boiler
+  const boiler=new THREE.Mesh(new THREE.CylinderGeometry(0.9,0.9,5,14),steelMat);
+  boiler.rotation.x=Math.PI/2; boiler.position.set(0,2.3,1.5); boiler.castShadow=true; g.add(boiler);
+  // Boiler front dome
+  const dome=new THREE.Mesh(new THREE.SphereGeometry(0.65,10,8),steelMat);
+  dome.position.set(0,2.3,3.8); g.add(dome);
+  // Smokestack
+  const stack=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.32,1.5,8),darkMat);
+  stack.position.set(0,3.5,2.6); g.add(stack);
+  const stackTop=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.22,0.28,8),darkMat);
+  stackTop.position.set(0,4.3,2.6); g.add(stackTop);
+  // Cab
+  const cab=new THREE.Mesh(new THREE.BoxGeometry(3,2.0,3),woodMat);
+  cab.position.set(0,2.4,-2.5); cab.castShadow=true; g.add(cab);
+  const cabRoof=new THREE.Mesh(new THREE.BoxGeometry(3.3,0.18,3.4),darkMat);
+  cabRoof.position.set(0,3.5,-2.5); g.add(cabRoof);
+  // Cab windows
+  [[-2.5],[-3.5]].forEach(([z])=>{
+    [-1.51,1.51].forEach(x=>{
+      const win=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.55,0.65),
+        new THREE.MeshLambertMaterial({color:0x8090a0,transparent:true,opacity:0.5}));
+      win.position.set(x,2.6,z); g.add(win);
+    });
+  });
+  // Red trim stripe
+  const trim=new THREE.Mesh(new THREE.BoxGeometry(3.1,0.14,7.1),redMat);
+  trim.position.set(0,0.55,0); g.add(trim);
+  // Cowcatcher
+  const cow=new THREE.Mesh(new THREE.BoxGeometry(2.8,0.5,0.9),darkMat);
+  cow.position.set(0,0.45,3.9); cow.rotation.x=-0.3; g.add(cow);
+  // Wheels (3 axles)
+  [-2.2,0,2.2].forEach(zw=>{
+    [-1.6,1.6].forEach(xw=>{
+      const w=new THREE.Mesh(new THREE.CylinderGeometry(0.52,0.52,0.2,14),darkMat);
+      w.rotation.z=Math.PI/2; w.position.set(xw,0.52,zw); w.castShadow=true; g.add(w);
+      const sp=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.96,0.06),
+        new THREE.MeshLambertMaterial({color:0x3a2a1a}));
+      sp.position.copy(w.position); g.add(sp);
+    });
+  });
+  // ── 7 CARS ──
+  // Car spacing: loco occupies ~z=4 to z=-4, each car is 6.5 units long with 0.5 gap
+  const carMats=[
+    new THREE.MeshLambertMaterial({color:0x2a1a0a}), // coal — dark brown
+    new THREE.MeshLambertMaterial({color:0x5a3a1a}), // cargo box 1 — brown
+    new THREE.MeshLambertMaterial({color:0x4a4a2a}), // cargo box 2 — olive
+    new THREE.MeshLambertMaterial({color:0x3a2a1a}), // cattle car — brown
+    new THREE.MeshLambertMaterial({color:0x5a3a1a}), // cargo box 3 — brown
+    new THREE.MeshLambertMaterial({color:0x3a2a1a}), // cattle car 2
+    new THREE.MeshLambertMaterial({color:0x8a2a2a}), // caboose — red
+  ];
+  const carTypes=['coal','box','box','cattle','box','cattle','caboose'];
+  const CAR_LEN=6.0, CAR_GAP=1.0;
+
+  for(let ci=0;ci<7;ci++){
+    const zOff = -(4 + CAR_GAP + ci*(CAR_LEN+CAR_GAP) + CAR_LEN/2);
+    const mat=carMats[ci];
+    const type=carTypes[ci];
+
+    // Undercarriage / base
+    const base=new THREE.Mesh(new THREE.BoxGeometry(3.0,0.35,CAR_LEN+0.2),darkMat);
+    base.position.set(0,0.28,zOff); g.add(base);
+
+    // Wheels (2 axles per car)
+    [-1,1].forEach(side=>{
+      [-CAR_LEN*0.28, CAR_LEN*0.28].forEach(wz=>{
+        const wh=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,0.18,12),darkMat);
+        wh.rotation.z=Math.PI/2; wh.position.set(side*1.5,0.5,zOff+wz);
+        wh.castShadow=true; g.add(wh);
+        const sp=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.9,0.06),
+          new THREE.MeshLambertMaterial({color:0x3a2a1a}));
+        sp.position.copy(wh.position); g.add(sp);
+      });
+    });
+
+    // Coupler between cars
+    const coup=new THREE.Mesh(new THREE.BoxGeometry(0.22,0.22,CAR_GAP+0.4),
+      new THREE.MeshLambertMaterial({color:0x3a3a3a}));
+    coup.position.set(0,0.65,zOff+CAR_LEN/2+CAR_GAP/2); g.add(coup);
+
+    if(type==='coal'){
+      // Open top coal wagon
+      const body=new THREE.Mesh(new THREE.BoxGeometry(2.8,1.2,CAR_LEN),mat);
+      body.position.set(0,1.0,zOff); body.castShadow=true; g.add(body);
+      const coalLoad=new THREE.Mesh(new THREE.BoxGeometry(2.4,0.5,CAR_LEN-0.6),darkMat);
+      coalLoad.position.set(0,1.85,zOff); g.add(coalLoad);
+
+    } else if(type==='box'){
+      // Closed cargo box
+      const body=new THREE.Mesh(new THREE.BoxGeometry(2.9,2.0,CAR_LEN),mat);
+      body.position.set(0,1.3,zOff); body.castShadow=true; g.add(body);
+      const roof=new THREE.Mesh(new THREE.BoxGeometry(3.0,0.18,CAR_LEN+0.1),darkMat);
+      roof.position.set(0,2.4,zOff); g.add(roof);
+      // Side planks
+      [-1,1].forEach(side=>{
+        for(let pi=0;pi<3;pi++){
+          const plank=new THREE.Mesh(new THREE.BoxGeometry(0.06,1.8,0.12),
+            new THREE.MeshLambertMaterial({color:0x2a1a08}));
+          plank.position.set(side*1.46,1.3,zOff+(pi-1)*(CAR_LEN/3));
+          g.add(plank);
+        }
+      });
+      // Sliding door on side
+      const door=new THREE.Mesh(new THREE.BoxGeometry(0.06,1.4,1.8),
+        new THREE.MeshLambertMaterial({color:0x3a2a10}));
+      door.position.set(1.48,1.2,zOff); g.add(door);
+
+    } else if(type==='cattle'){
+      // Slatted cattle car — open sides with vertical slats
+      const floor=new THREE.Mesh(new THREE.BoxGeometry(2.8,0.18,CAR_LEN),mat);
+      floor.position.set(0,0.55,zOff); g.add(floor);
+      const roofC=new THREE.Mesh(new THREE.BoxGeometry(3.0,0.18,CAR_LEN+0.1),darkMat);
+      roofC.position.set(0,2.5,zOff); g.add(roofC);
+      // Vertical slats on each side
+      [-1,1].forEach(side=>{
+        for(let si=0;si<8;si++){
+          const slat=new THREE.Mesh(new THREE.BoxGeometry(0.1,1.8,0.12),mat);
+          slat.position.set(side*1.45,1.5,zOff-CAR_LEN/2+0.4+si*(CAR_LEN-0.8)/7);
+          g.add(slat);
+        }
+        // Top + bottom rail
+        [0.55,2.45].forEach(y=>{
+          const rail=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.12,CAR_LEN),mat);
+          rail.position.set(side*1.45,y,zOff); g.add(rail);
+        });
+      });
+
+    } else if(type==='caboose'){
+      // Red caboose with raised cupola on top
+      const body=new THREE.Mesh(new THREE.BoxGeometry(2.9,2.0,CAR_LEN),mat);
+      body.position.set(0,1.3,zOff); body.castShadow=true; g.add(body);
+      const roof=new THREE.Mesh(new THREE.BoxGeometry(3.0,0.2,CAR_LEN+0.1),
+        new THREE.MeshLambertMaterial({color:0x6a1a1a})); // darker red roof
+      roof.position.set(0,2.42,zOff); g.add(roof);
+      // Cupola (raised lookout box on top)
+      const cup=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.9,2.5),
+        new THREE.MeshLambertMaterial({color:0x7a2020}));
+      cup.position.set(0,3.05,zOff); cup.castShadow=true; g.add(cup);
+      const cupRoof=new THREE.Mesh(new THREE.BoxGeometry(1.8,0.15,2.7),
+        new THREE.MeshLambertMaterial({color:0x5a1818}));
+      cupRoof.position.set(0,3.55,zOff); g.add(cupRoof);
+      // Cupola windows
+      [-0.61,0.61].forEach(x=>{
+        const cw=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.4,0.6),
+          new THREE.MeshLambertMaterial({color:0x8090a0,transparent:true,opacity:0.5}));
+        cw.position.set(x,3.1,zOff); g.add(cw);
+      });
+      // Windows on sides
+      [-1,1].forEach(side=>{
+        [-1.5,0,1.5].forEach(wz=>{
+          const win=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.55,0.7),
+            new THREE.MeshLambertMaterial({color:0x8090a0,transparent:true,opacity:0.5}));
+          win.position.set(side*1.47,1.5,zOff+wz); g.add(win);
+        });
+      });
+      // Rear railing
+      const rail=new THREE.Mesh(new THREE.BoxGeometry(2.6,0.08,0.08),
+        new THREE.MeshLambertMaterial({color:0x2a1a0a}));
+      rail.position.set(0,2.2,zOff-CAR_LEN/2-0.1); g.add(rail);
+      // Lantern on back
+      const lantern=new THREE.Mesh(new THREE.BoxGeometry(0.22,0.32,0.22),
+        new THREE.MeshLambertMaterial({color:0xffcc44,emissive:new THREE.Color(0.5,0.4,0.0)}));
+      lantern.position.set(0,2.1,zOff-CAR_LEN/2-0.2); g.add(lantern);
+      const rearLight=new THREE.PointLight(0xff8800,1.0,8);
+      rearLight.position.set(0,2.1,zOff-CAR_LEN/2-0.5); g.add(rearLight);
+    }
+  }
+  // Headlight glow
+  const hl=new THREE.PointLight(0xfff8c0,3,22);
+  hl.position.set(0,2.3,4.5); g.add(hl);
+  const lens=new THREE.Mesh(new THREE.CircleGeometry(0.25,10),
+    new THREE.MeshLambertMaterial({color:0xffff88,emissive:new THREE.Color(0.9,0.9,0.1)}));
+  lens.position.set(0,2.3,4.1); lens.rotation.y=Math.PI; g.add(lens);
+
+  // Smoke particles (simple spheres that drift up)
+  for(let i=0;i<3;i++){
+    const smoke=new THREE.Mesh(new THREE.SphereGeometry(0.3,6,6),
+      new THREE.MeshLambertMaterial({color:0x888888,transparent:true,opacity:0.4}));
+    smoke.position.set(0,4.5+i*0.6,2.6);
+    smoke.userData.smokeOffset=i;
+    g.add(smoke);
+  }
+
+  // Driver NPC in cab
+  trainDriverNPC=makeHumanMesh(0x2a3a2a);
+  trainDriverNPC.position.set(-0.8,0,-2.5);
+  trainDriverNPC.scale.setScalar(1);
+  g.add(trainDriverNPC);
+
+  // Place on map - starts at fixed position
+  g.position.set(-70,0,-50);
+  g.rotation.y=0;
+  trainMesh=g;
+  S.add(trainMesh);
+
+  // ── PROPER TRAIN TRACK ──
+  const TRACK_STEPS = 220;   // segments around the oval — high density
+  const rx = 90, rz = 65;
+  const cx = -10, cz = -20; // centre offset matching train route
+  const railMat  = new THREE.MeshLambertMaterial({color:0x606070}); // steel grey
+  const tieMat   = new THREE.MeshLambertMaterial({color:0x3a2408}); // dark wood
+  const ballastMat = new THREE.MeshLambertMaterial({color:0x6a6050}); // crushed stone
+
+  for(let i = 0; i < TRACK_STEPS; i++){
+    const t0 = i / TRACK_STEPS;
+    const t1 = (i + 1) / TRACK_STEPS;
+    const a0 = t0 * Math.PI * 2;
+    const a1 = t1 * Math.PI * 2;
+
+    const x0 = Math.cos(a0)*rx + cx,  z0 = Math.sin(a0)*rz + cz;
+    const x1 = Math.cos(a1)*rx + cx,  z1 = Math.sin(a1)*rz + cz;
+
+    // Direction tangent + perpendicular
+    const dx = x1 - x0, dz = z1 - z0;
+    const segLen = Math.sqrt(dx*dx + dz*dz);
+    const angle  = Math.atan2(dx, dz);
+
+    const mx = (x0+x1)/2, mz = (z0+z1)/2;
+
+    // ── Ballast bed (gravel under track) ──
+    const ballast = new THREE.Mesh(
+      new THREE.BoxGeometry(4.4, 0.18, segLen + 0.05),
+      ballastMat
+    );
+    ballast.position.set(mx, 0.04, mz);
+    ballast.rotation.y = angle;
+    S.add(ballast);
+
+    // ── Left rail ──
+    const railL = new THREE.Mesh(
+      new THREE.BoxGeometry(0.18, 0.22, segLen + 0.05),
+      railMat
+    );
+    railL.position.set(
+      mx - Math.cos(angle) * 1.5,
+      0.22,
+      mz + Math.sin(angle) * 1.5
+    );
+    railL.rotation.y = angle;
+    S.add(railL);
+
+    // ── Right rail ──
+    const railR = new THREE.Mesh(
+      new THREE.BoxGeometry(0.18, 0.22, segLen + 0.05),
+      railMat
+    );
+    railR.position.set(
+      mx + Math.cos(angle) * 1.5,
+      0.22,
+      mz - Math.sin(angle) * 1.5
+    );
+    railR.rotation.y = angle;
+    S.add(railR);
+
+    // ── Wooden tie every ~2 segments ──
+    if(i % 2 === 0){
+      const tie = new THREE.Mesh(
+        new THREE.BoxGeometry(3.8, 0.18, 0.55),
+        tieMat
+      );
+      tie.position.set(mx, 0.14, mz);
+      tie.rotation.y = angle;
+      tie.receiveShadow = true;
+      S.add(tie);
+    }
+
+    // ── Rail spike bolts every 6 segments ──
+    if(i % 6 === 0){
+      [-1.5, 1.5].forEach(side => {
+        const spike = new THREE.Mesh(
+          new THREE.BoxGeometry(0.1, 0.18, 0.1),
+          new THREE.MeshLambertMaterial({color:0x404040})
+        );
+        spike.position.set(
+          mx - Math.cos(angle) * side,
+          0.28,
+          mz + Math.sin(angle) * side
+        );
+        spike.rotation.y = angle;
+        S.add(spike);
+      });
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════
+// TRAIN UPDATE
+// ═══════════════════════════════════════════════
+function updateTrain(dt){
+  if(!trainMesh)return;
+  if(onTrain){
+    // Player controls
+    if(K.KeyW) trainSpd=Math.min(TRAIN_MAX, trainSpd+2*dt);
+    else if(K.KeyS) trainSpd=Math.max(0, trainSpd-3*dt);
+    else trainSpd=Math.max(0, trainSpd-1*dt);
+    // Update speed HUD
+    const th=document.getElementById('trainHud');
+    if(th){ th.style.opacity='1'; document.getElementById('trainSpeedVal').textContent=Math.floor(trainSpd); }
+  } else {
+    const th=document.getElementById('trainHud');
+    if(th) th.style.opacity='0';
+    if(!trainDead) trainSpd=Math.min(3, trainSpd+0.8*dt);
+    else trainSpd=Math.max(0, trainSpd-0.5*dt);
+  }
+
+  // Move along oval route — must match track geometry (rx=90, rz=65, cx=-10, cz=-20)
+  const circumference=Math.PI*2;
+  trainT=(trainT+(trainSpd*0.00012)*dt*60)%1;
+  const angle=trainT*Math.PI*2;
+  const rx=90, rz=65, cx=-10, cz=-20;
+  const nx=Math.cos(angle)*rx+cx, nz=Math.sin(angle)*rz+cz;
+  const nagle=trainT*Math.PI*2+0.02;
+  const fx=Math.cos(nagle)*rx+cx, fz=Math.sin(nagle)*rz+cz;
+  trainMesh.position.set(nx,0,nz);
+  trainMesh.rotation.y=Math.atan2(fx-nx,fz-nz);
+
+  // Smoke animation
+  trainMesh.children.forEach(c=>{
+    if(c.userData&&c.userData.smokeOffset!==undefined){
+      c.position.y=4.5+c.userData.smokeOffset*0.6+Math.sin(lastT*0.003+c.userData.smokeOffset)*0.3;
+      c.material.opacity=trainSpd>2?0.35:0.05;
+    }
+  });
+
+  // If player on train, ride along
+  if(onTrain){
+    const back=-Math.atan2(fx-nx,fz-nz);
+    playerMesh.position.set(nx+Math.sin(back)*(-1.5), 2.6, nz+Math.cos(back)*(-1.5));
+    playerMesh.rotation.y=trainMesh.rotation.y;
+  }
+}
+
+// ═══════════════════════════════════════════════
+// BUILD WILD HORSES
+// ═══════════════════════════════════════════════
+function buildWildHorses(){
+  wildHorses=[];
+  const WILD=[
+    {name:'Pinto',color:0xd4a870,speed:1.35,dist:55},
+    {name:'Appaloosa',color:0xe8d8b0,speed:1.3,dist:70},
+    {name:'Mustang',color:0x7a4a28,speed:1.55,dist:80},
+    {name:'Dark Bay',color:0x3a2010,speed:1.45,dist:65},
+    {name:'Grey Mare',color:0xb8b8c0,speed:1.25,dist:60},
+  ];
+  WILD.forEach((data,i)=>{
+    const g=new THREE.Group();
+    const mat=new THREE.MeshLambertMaterial({color:data.color});
+    // Body
+    const body=new THREE.Mesh(new THREE.BoxGeometry(1.2,.85,2.2),mat);body.position.y=1.1;body.castShadow=true;g.add(body);
+    const neck=new THREE.Mesh(new THREE.BoxGeometry(.45,.65,.45),mat);neck.position.set(0,1.65,.85);neck.rotation.x=-.4;neck.castShadow=true;g.add(neck);
+    const head=new THREE.Mesh(new THREE.BoxGeometry(.38,.38,.65),mat);head.position.set(0,1.95,1.2);head.castShadow=true;g.add(head);
+    for(let j=0;j<4;j++){
+      const leg=new THREE.Mesh(new THREE.BoxGeometry(.22,.88,.22),mat);
+      leg.position.set((j%2?-.4:.4),.44,(j<2?.7:-.7));leg.castShadow=true;g.add(leg);
+    }
+    const mane=new THREE.Mesh(new THREE.BoxGeometry(.14,.5,.6),new THREE.MeshLambertMaterial({color:0x1a1008}));
+    mane.position.set(0,2.08,.78);g.add(mane);
+    const tail=new THREE.Mesh(new THREE.CylinderGeometry(.09,.04,.75,6),new THREE.MeshLambertMaterial({color:0x1a1008}));
+    tail.position.set(0,1.1,-1.2);tail.rotation.x=.55;g.add(tail);
+    // White name marker above horse
+    const marker=new THREE.Mesh(new THREE.SphereGeometry(0.18,6,6),
+      new THREE.MeshLambertMaterial({color:0xffee88,emissive:new THREE.Color(0.6,0.6,0.0)}));
+    marker.position.set(0,3.0,0); g.add(marker);
+
+    const angle=(i/WILD.length)*Math.PI*2+1.2;
+    g.position.set(Math.cos(angle)*data.dist, 0, Math.sin(angle)*data.dist);
+    g.rotation.y=Math.random()*Math.PI*2;
+    S.add(g);
+    wildHorses.push({
+      mesh:g, name:data.name, color:data.color, speed:data.speed,
+      tamed:false, lassoed:false,
+      dir:rdir(), changeT:2+Math.random()*3,
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════
+// WILD HORSE UPDATE
+// ═══════════════════════════════════════════════
+function updateWildHorses(dt){
+  const pp=playerMesh.position;
+
+  // My horse stamina + call cooldown
+  if(!onHorse) horseStamina=Math.min(100,horseStamina+dt*15);
+  else horseStamina=Math.max(0,horseStamina-dt*(K.ShiftLeft?8:2));
+  if(horseCallCD>0) horseCallCD-=dt;
+
+  // Update horse status HUD
+  const hs=document.getElementById('horseStatus');
+  if(hs){ hs.style.opacity='1'; }
+  const hn=document.getElementById('horseName');
+  if(hn) hn.textContent='🐴 '+myHorseName;
+  const hst=document.getElementById('hStam');
+  if(hst) hst.style.width=horseStamina+'%';
+  const hb=document.getElementById('hBond');
+  if(hb) hb.style.width=horseBond+'%';
+
+  // Wild horse roaming AI
+  wildHorses.forEach(wh=>{
+    if(wh.tamed)return;
+    const dist=wh.mesh.position.distanceTo(pp);
+    wh.changeT-=dt;
+    if(wh.changeT<=0){
+      wh.changeT=1.5+Math.random()*3;
+      if(!wh.lassoed) wh.dir=rdir();
+    }
+    if(!wh.lassoed){
+      // Flee if player close
+      if(dist<22){
+        const away=new THREE.Vector3().subVectors(wh.mesh.position,pp).normalize();
+        wh.dir.lerp(away,0.18);
+      }
+      wh.mesh.position.x=Math.max(-160,Math.min(160,wh.mesh.position.x+wh.dir.x*6*dt));
+      wh.mesh.position.z=Math.max(-160,Math.min(160,wh.mesh.position.z+wh.dir.z*6*dt));
+      wh.mesh.rotation.y=Math.atan2(wh.dir.x,wh.dir.z);
+    } else {
+      // Lassoed - pulled toward player
+      if(dist>2.5){
+        const toP=new THREE.Vector3().subVectors(pp,wh.mesh.position).normalize();
+        wh.mesh.position.x+=toP.x*3.5*dt;
+        wh.mesh.position.z+=toP.z*3.5*dt;
+        wh.mesh.rotation.y=Math.atan2(toP.x,toP.z);
+      }
+      // Taming when Z held and close
+      if(dist<3&&K.KeyZ){
+        lassoProgress=Math.min(100,lassoProgress+dt*18);
+        const tp=document.getElementById('tameProg');
+        const tl=document.getElementById('tameLbl');
+        const tf=document.getElementById('tameFill');
+        if(tp) tp.style.opacity='1';
+        if(tl) tl.textContent='Petting '+wh.name+'... '+Math.floor(lassoProgress)+'%';
+        if(tf) tf.style.width=lassoProgress+'%';
+        if(lassoProgress>=100) tameWildHorse(wh);
+      } else if(dist<3){
+        const tp=document.getElementById('tameProg');
+        const tl=document.getElementById('tameLbl');
+        if(tp) tp.style.opacity='1';
+        if(tl) tl.textContent='Hold [Z] to pet '+wh.name+' - '+Math.floor(lassoProgress)+'%';
+      } else {
+        const tp=document.getElementById('tameProg');
+        if(tp) tp.style.opacity='0';
+      }
+    }
+    // Leg animation
+    const sw=Math.sin(lastT*.009)*.3;
+    for(let i=3;i<7&&i<wh.mesh.children.length;i++)
+      wh.mesh.children[i].rotation.x=(i%2===0?1:-1)*sw;
+  });
+
+  // Lasso ring HUD
+  const lr=document.getElementById('lassoRing');
+  if(lr) lr.style.opacity=lassoActive?'1':'0';
+  if(!lassoActive){
+    const tp=document.getElementById('tameProg');
+    if(tp) tp.style.opacity='0';
+  }
+
+  // Pull hogtied enemies / animals toward player
+  if(lassoActive&&lassoTarget&&lassoTarget._lassoType!=='horse'){
+    const pp=playerMesh.position;
+    const dist=lassoTarget.mesh.position.distanceTo(pp);
+    if(dist>2.2){
+      const toP=new THREE.Vector3().subVectors(pp,lassoTarget.mesh.position).normalize();
+      lassoTarget.mesh.position.x+=toP.x*4*dt;
+      lassoTarget.mesh.position.z+=toP.z*4*dt;
+      lassoTarget.mesh.rotation.y=Math.atan2(toP.x,toP.z);
+    }
+    // Flash the hogtied target red to show it's caught
+    if(lassoTarget.mesh.children[0]&&Math.sin(lastT*0.012)>0.8){
+      lassoTarget.mesh.children[0].material&&(lassoTarget.mesh.children[0].material.emissive=new THREE.Color(0.3,0,0));
+    } else if(lassoTarget.mesh.children[0]&&lassoTarget.mesh.children[0].material){
+      lassoTarget.mesh.children[0].material.emissive=new THREE.Color(0,0,0);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════
+// LASSO + TAME
+// ═══════════════════════════════════════════════
+function throwLasso(){
+  if(!ownedItems.includes('lasso')){notify('You need a Lasso! Buy one at the General Store ($150).');return;}
+
+  // Cancel lasso if already active
+  if(lassoActive){
+    lassoActive=false;
+    if(lassoTarget){
+      if(lassoTarget.lassoed!==undefined) lassoTarget.lassoed=false;
+      if(lassoTarget.hogtied!==undefined) lassoTarget.hogtied=false;
+      lassoTarget=null;
+    }
+    lassoProgress=0;
+    notify('Lasso recalled.');
+    return;
+  }
+
+  const pp=playerMesh.position;
+  let nearest=null, nd=9999, lassoType='none';
+
+  // 1. Check wild horses (priority: taming)
+  wildHorses.forEach(wh=>{
+    if(!wh.tamed){
+      const d=wh.mesh.position.distanceTo(pp);
+      if(d<nd){nd=d;nearest=wh;lassoType='horse';}
+    }
+  });
+
+  // 2. Check enemies (hogtie for bounty — sheriff gets bonus)
+  entities.forEach(e=>{
+    if(!e.dead&&!e.isAnimal&&e.mesh.parent){
+      const d=e.mesh.position.distanceTo(pp);
+      if(d<nd){nd=d;nearest=e;lassoType='enemy';}
+    }
+  });
+
+  // 3. Check animals (capture alive for bonus payout)
+  entities.forEach(e=>{
+    if(!e.dead&&e.isAnimal&&e.mesh.parent){
+      const d=e.mesh.position.distanceTo(pp);
+      if(d<nd){nd=d;nearest=e;lassoType='animal';}
+    }
+  });
+
+  if(nearest&&nd<22){
+    lassoActive=true;
+    lassoTarget=nearest;
+    lassoTarget._lassoType=lassoType;
+    lassoProgress=0;
+    if(lassoType==='horse'){
+      nearest.lassoed=true;
+      notify('🪢 Lassoed '+nearest.name+'! Pull close then hold Z to tame.');
+    } else if(lassoType==='enemy'){
+      nearest.hogtied=true; nearest.state='hogtied';
+      notify('🪢 Hogtied '+nearest.name+'! Walk up and press E to collect bounty.');
+      addKill('🪢 Hogtied: '+nearest.name);
+    } else if(lassoType==='animal'){
+      nearest.hogtied=true; nearest.state='hogtied';
+      notify('🪢 Lassoed '+nearest.name+'! Walk up and press E to capture & sell alive.');
+      addKill('🪢 Lassoed: '+nearest.name);
+    }
+    addSkillXP('survival',15);
+  } else {
+    notify('Nothing in lasso range (22m). L again to cancel.');
+  }
+}
+
+function tameWildHorse(wh){
+  wh.tamed=true; wh.lassoed=false;
+  lassoActive=false; lassoTarget=null; lassoProgress=0;
+  // Remove old player horse mesh, swap to new one
+  if(horseMesh&&horseMesh.parent) S.remove(horseMesh);
+  // Remove the yellow marker from tamed horse
+  const marker=wh.mesh.children.find(c=>c.geometry&&c.geometry.type==='SphereGeometry'&&c.position.y>2.5);
+  if(marker) wh.mesh.remove(marker);
+  horseMesh=wh.mesh;
+  myHorseName=wh.name;
+  horseSpeed=wh.speed;
+  horseBond=0; horseStamina=100;
+  bigTxt('HORSE TAMED!');
+  notify('🐴 '+wh.name+' is yours! E = Mount, Q = Whistle to call');
+  addKill('🐴 Tamed: '+wh.name+' - Speed x'+wh.speed.toFixed(1));
+  addSkillXP('survival',80);
+  wildHorses=wildHorses.filter(h=>h!==wh);
+}
+
+// ═══════════════════════════════════════════════
+// CALL HORSE (Q KEY)
+// ═══════════════════════════════════════════════
+function callMyHorse(){
+  if(onHorse){notify('You are already riding!');return;}
+  if(horseCallCD>0){notify('Horse is on its way... ('+(Math.ceil(horseCallCD))+'s)');return;}
+  // Teleport horse to just behind player
+  if(horseMesh){
+    horseMesh.position.set(
+      playerMesh.position.x+Math.sin(yaw)*3.5,
+      0,
+      playerMesh.position.z+Math.cos(yaw)*3.5
+    );
+    horseMesh.rotation.y=-yaw;
+    horseCallCD=10;
+    notify('🎵 '+myHorseName+' came to you! Press E to mount.');
+    addKill('🐴 Horse whistled - '+myHorseName+' arrived');
+  } else {
+    notify('You have no horse. Find a wild one and use L to lasso it!');
+  }
+}
+
+// ═══════════════════════════════════════════════
+// INPUT
+// ═══════════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  K[e.code]=true;
+  if(!running)return;
+  if(e.code==='KeyR'&&!reloading&&ammo<maxAmmo){reloading=true;reloadT=2.3;notify('Reloading...');}
+  if(e.code==='KeyV')cycleView();
+
+  // E = Mount / Dismount horse OR interact with nearby objects
+  if(e.code==='KeyE'){
+    if(onHorse){
+      // Dismount
+      onHorse=false;playerMesh.position.y=0;playerMesh.position.x+=2;notify('Dismounted horse');
+    } else if(nearbyInteract==='horse'){
+      // Mount own horse
+      onHorse=true;notify('🐴 Mounted! Ride with WASD - Shift to gallop');
+    } else if(nearbyInteract==='shop_general'){
+      openShop('general');
+    } else if(nearbyInteract==='shop_horses'){
+      openShop('horses');
+    } else if(nearbyInteract==='train_kill'){
+      // Kill driver to board
+      if(trainDriverNPC){
+        S.remove(trainDriverNPC); trainDriverNPC=null; trainDead=true;
+        notify('Driver eliminated! Board the train with E.'); addKill('🚂 Train driver killed');
+        wanted=Math.min(5,wanted+2); wantedDecay=40;
+      }
+    } else if(nearbyInteract==='train_board'){
+      onTrain=true; notify('🚂 Aboard! W = Accelerate, S = Brake, E = Jump off');
+      addKill('🚂 Locomotive seized!');
+    } else if(nearbyInteract==='train_exit'){
+      onTrain=false; trainSpd=Math.max(0,trainSpd-2);
+      playerMesh.position.x+=4; notify('Jumped off the train!');
+    } else if(nearbyInteract==='collect_bounty'){
+      // Collect hogtied enemy as bounty
+      const ent=lassoTarget;
+      const bountyAmt=Math.floor((ent.reward||40)*1.5*playerRole.cashMult); // 1.5x for alive
+      money+=bountyAmt;
+      score+=ent.pts*2;
+      honor=Math.min(100,honor+(playerRole.id==='sheriff'?12:3));
+      addSkillXP(playerRole.id==='sheriff'?'justice':'thieving',60);
+      if(ent.mesh.parent) S.remove(ent.mesh);
+      ent.dead=true;
+      lassoActive=false; lassoTarget=null;
+      bigTxt('BOUNTY COLLECTED!');
+      notify('⭐ '+ent.name+' arrested! +$'+bountyAmt+' (alive bonus)');
+      addKill('⭐ Arrested: '+ent.name+' +$'+bountyAmt);
+      wanted=Math.max(0,wanted-(playerRole.id==='sheriff'?1:0));
+    } else if(nearbyInteract==='sell_animal'){
+      // Sell lassoed animal alive for double
+      const ent=lassoTarget;
+      const sellAmt=Math.floor(ent.reward*2*playerRole.cashMult);
+      money+=sellAmt;
+      score+=ent.pts;
+      inventory.pelts.push({name:ent.name+' (live)',value:ent.reward*2});
+      addSkillXP('hunting',50);
+      if(ent.mesh.parent) S.remove(ent.mesh);
+      ent.dead=true;
+      lassoActive=false; lassoTarget=null;
+      notify('🦌 Sold '+ent.name+' alive! +$'+sellAmt+' (double value!)');
+      addKill('🦌 Captured alive: '+ent.name+' +$'+sellAmt);
+    } else if(nearbyInteract==='bank'||nearbyInteract==='sell'){
+      doBank();
+    } else if(nearbyInteract==='sheriff'){
+      doSheriff();
+    } else if(nearbyInteract==='saloon'){
+      hp=Math.min(100,hp+20);de=100;sp=100;
+      notify('Rested at saloon - Full stamina & Dead Eye!');addSkillXP('survival',15);
+    } else {
+      notify('Nothing nearby to interact with. (E = Interact / Mount)');
+    }
+  }
+
+  // Z = Dead Eye (freed from E)
+  if(e.code==='KeyZ'){
+    if(deActive)stopDE();
+    else if(de>15){deActive=true;document.getElementById('deOverlay').classList.add('on');notify('✦ DEAD EYE ACTIVATED');}
+    else notify('Dead Eye meter too low!');
+  }
+
+  if(e.code==='KeyQ')callMyHorse();
+  if(e.code==='KeyL')throwLasso();
+  if(e.code==='KeyG')doMine();
+  if(e.code==='KeyH')doHunt();
+  if(e.code==='KeyB'){if(nearbyInteract==='bank'||nearbyInteract==='sell')doBank();else if(nearbyInteract==='sheriff')doSheriff();else notify('No bank nearby.');}
+  if(e.code==='KeyT'){
+    if(nearbyInteract==='shop_general')openShop('general');
+    else if(nearbyInteract==='shop_horses')openShop('horses');
+    else if(nearbyInteract==='saloon'){hp=Math.min(100,hp+20);de=100;sp=100;notify('Rested at saloon. Full stamina & Dead Eye!');addSkillXP('survival',15);}
+    else notify('No shop nearby. Find a General Store or Stables.');
+  }
+  if(e.code==='Tab'){e.preventDefault();openSkillsPanel();}
+  if(e.code==='KeyX'&&inventory.bandages>0){inventory.bandages--;hp=Math.min(100,hp+30);notify('Bandage used +30 HP');}
+});
+document.addEventListener('keyup',e=>K[e.code]=false);
+document.addEventListener('mousemove',e=>{
+  if(!locked)return;
+  const s=deActive?.0012:.002;
+  yaw-=e.movementX*s;pitch=Math.max(-Math.PI/2.5,Math.min(Math.PI/2.5,pitch-e.movementY*s));
+});
+document.addEventListener('mousedown',e=>{
+  if(!running)return;
+  if(!locked){doLock();return;}
+  if(e.button===0)shoot();
+  if(e.button===2){if(deActive)stopDE();else if(de>15){deActive=true;document.getElementById('deOverlay').classList.add('on');notify('✦ DEAD EYE ACTIVATED');}}
+});
+document.addEventListener('contextmenu',e=>e.preventDefault());
+
+function stopDE(){deActive=false;document.getElementById('deOverlay').classList.remove('on');}
+function flash(){const f=document.getElementById('hitFl');f.style.opacity='1';setTimeout(()=>f.style.opacity='0',110);}
+function die(){if(!running)return;running=false;setTimeout(endGame,500);}
+
+function doLock(){document.getElementById('gc').requestPointerLock();}
+document.addEventListener('pointerlockchange',()=>{
+  locked=document.pointerLockElement===document.getElementById('gc');
+  document.getElementById('lockscreen').style.display=locked?'none':'flex';
+});
+window.addEventListener('resize',onResize);
+function onResize(){if(!R)return;R.setSize(innerWidth,innerHeight);C.aspect=innerWidth/innerHeight;C.updateProjectionMatrix();}
+
+// ═══════════════════════════════════════════════
+// VIEW
+// ═══════════════════════════════════════════════
+function setView(v){
+  currentView=v;
+  ['tps','fps','top'].forEach(id=>{const el=document.getElementById('v'+id);if(el)el.classList.toggle('active',id===v);});
+  document.getElementById('xhair').style.display=v==='top'?'none':'flex';
+}
+function cycleView(){const vs=['tps','fps','top'];setView(vs[(vs.indexOf(currentView)+1)%vs.length]);}
+
+// ═══════════════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════════════
+let nI=0;
+function notify(msg){const id='n'+(nI%2+1);nI++;const el=document.getElementById(id);if(!el)return;el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3500);}
+function bigTxt(txt){const el=document.getElementById('bigTxt');el.textContent=txt;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3000);}
+function addKill(msg){const f=document.getElementById('kfeed');const el=document.createElement('div');el.className='ke';el.textContent=msg;f.appendChild(el);setTimeout(()=>el.remove(),3800);}
+
+// ═══════════════════════════════════════════════
+// GAME FLOW
+// ═══════════════════════════════════════════════
+function launch(){
+  if(!R)initEngine();
+  hp=100;sp=100;de=100;honor=50;money=100;score=0;wanted=0;wantedDecay=0;
+  ammo=maxAmmo;reloading=false;deActive=false;yaw=0;pitch=0;K={};
+  onHorse=false;inventory={ore:[],pelts:[],gold:0,dynamite:0,bandages:3,ammo_packs:0};
+  ownedItems=['pistol','horse_brown'];equippedWeapon='pistol';maxAmmo=6;ammo=6;
+  skills={hunting:0,mining:0,thieving:0,justice:0,survival:0};
+  skillXP={hunting:0,mining:0,thieving:0,justice:0,survival:0};
+  gTime=360;wave=1;camTarget.set(5,3,5);
+
+  // Update HUD role badge
+  const badge=document.getElementById('roleBadge');
+  badge.className='p-role-badge '+playerRole.badge;badge.textContent=playerRole.name.toUpperCase();
+  document.getElementById('pName').textContent=playerRole.name.toUpperCase()+' OF BRONZE CITY';
+
+  // Rebuild player with role color
+  S.remove(playerMesh);buildPlayerMesh();
+
+  spawnWave(1);
+
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('gc').style.display='block';
+  document.getElementById('hud').classList.add('active');
+  document.getElementById('lockscreen').style.display='flex';
+  running=true;lastT=performance.now();
+  requestAnimationFrame(gameLoop);
+}
+
+function endGame(){
+  running=false;
+  document.getElementById('hud').classList.remove('active');
+  document.getElementById('gc').style.display='none';
+  document.getElementById('lockscreen').style.display='none';
+  if(document.pointerLockElement)document.exitPointerLock();
+  document.getElementById('goStats').innerHTML=
+    `Role: ${playerRole.name}<br>Money: $${Math.floor(money)} · Score: ${score}<br>Wave: ${wave} · Honor: ${Math.round(honor)}%<br>Skills: Mining Lv${skills.mining} · Hunting Lv${skills.hunting} · ${playerRole.id==='outlaw'?'Thieving':'Justice'} Lv${skills[playerRole.id==='outlaw'?'thieving':'justice']}`;
+  showScreen('gameover');
+}
+
+function restartGame(){entities.forEach(e=>{if(e.mesh&&e.mesh.parent)S.remove(e.mesh);});entities=[];launch();}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById(id);if(el)el.classList.add('active');
+  if(id==='title')drawTitle();
+}
+
+function showCtrlHelp(){
+  alert(`WILD WEST - Controls
+
+MOVEMENT: WASD · Shift = Sprint
+CAMERA: Mouse · V = Cycle View (3rd/1st/Map)
+COMBAT: Left Click = Shoot · Z / Right Click = Dead Eye · R = Reload
+
+HORSE: E = Mount/Dismount (stand near your horse)
+INTERACT: E = Enter shops, bank, saloon when nearby
+MINING: G = Mine ore (stand near glowing node)
+HUNTING: H = Harvest animal (stand near dead animal)
+BANK: B = Rob Bank (Outlaw) / Sell Loot / Collect Bounty (Sheriff)
+SHOP: T = Open Shop (stand near General Store or Stables)
+SKILLS: Tab = Open Skills Panel
+HEAL: X = Use Bandage (if you have one)
+
+TIPS:
+• Check minimap - yellow dots = ore, red = enemies
+• Sell your loot at the Bank to cash in
+• Higher skill levels give better rewards
+• Wanted stars decay over time if you hide`);
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+drawTitle();buildRoleGrid();
+</script>
+</body>
+</html>

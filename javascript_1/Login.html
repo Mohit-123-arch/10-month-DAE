@@ -3,20 +3,363 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - Origin Games</title>
+  <title>Login - Silo Games</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #07e98f;
+      --green-glow: #00FF00;
+      --dark: #050914;
+      --mid: #1d1360;
+      --white: #f0f0f0;
+      --error: #ff4d6d;
+      --card-bg: rgba(7, 233, 143, 0.04);
+      --border: rgba(7, 233, 143, 0.2);
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at center, var(--mid) 0%, var(--dark) 70%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Rajdhani', sans-serif;
+      color: var(--white);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(7,233,143,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(7,233,143,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .logo {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--green);
+      text-shadow: 0 0 20px var(--green-glow), 0 0 40px rgba(7,233,143,0.3);
+      margin-bottom: 2rem;
+      letter-spacing: 3px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 420px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 0 60px rgba(7,233,143,0.08), inset 0 1px 0 rgba(7,233,143,0.1);
+      position: relative;
+      z-index: 1;
+    }
+
+    .tabs {
+      display: flex;
+      margin-bottom: 2rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 0.65rem;
+      background: transparent;
+      border: none;
+      color: rgba(240,240,240,0.4);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .tab-btn.active {
+      background: rgba(7,233,143,0.12);
+      color: var(--green);
+      text-shadow: 0 0 10px var(--green-glow);
+    }
+
+    .form-section { display: none; }
+    .form-section.active { display: block; }
+
+    .form-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+      color: var(--green);
+      margin-bottom: 1.5rem;
+      letter-spacing: 2px;
+    }
+
+    .input-group { margin-bottom: 1rem; }
+
+    .input-group label {
+      display: block;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      color: rgba(240,240,240,0.5);
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: rgba(5,9,20,0.6);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--white);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .input-group input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 15px rgba(7,233,143,0.15);
+    }
+
+    .input-group input::placeholder { color: rgba(240,240,240,0.2); }
+
+    .btn-primary {
+      width: 100%;
+      padding: 0.85rem;
+      background: linear-gradient(135deg, rgba(7,233,143,0.2), rgba(7,233,143,0.08));
+      border: 1px solid var(--green);
+      border-radius: 8px;
+      color: var(--green);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-shadow: 0 0 10px rgba(7,233,143,0.5);
+      margin-top: 0.5rem;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, rgba(7,233,143,0.3), rgba(7,233,143,0.15));
+      box-shadow: 0 0 25px rgba(7,233,143,0.25);
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 1.25rem 0;
+      color: rgba(240,240,240,0.2);
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .btn-social {
+      width: 100%;
+      padding: 0.75rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      color: var(--white);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .btn-social:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    .btn-social svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+    .otp-info {
+      font-size: 0.85rem;
+      color: rgba(240,240,240,0.5);
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+w
+    .otp-info span { color: var(--green); }
+
+    .msg {
+      padding: 0.65rem 1rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .msg.error { background: rgba(255,77,109,0.1); border: 1px solid rgba(255,77,109,0.3); color: var(--error); display: block; }
+    .msg.success { background: rgba(7,233,143,0.08); border: 1px solid rgba(7,233,143,0.25); color: var(--green); display: block; }
+
+    .back-link {
+      text-align: center;
+      margin-top: 1.25rem;
+      font-size: 0.85rem;
+      color: rgba(240,240,240,0.4);
+    }
+
+    .back-link a { color: var(--green); text-decoration: none; transition: text-shadow 0.3s; }
+    .back-link a:hover { text-shadow: 0 0 10px var(--green-glow); }
+
+    .steps { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+
+    .step-dot {
+      height: 3px;
+      flex: 1;
+      border-radius: 2px;
+      background: var(--border);
+      transition: background 0.3s;
+    }
+
+    .step-dot.active { background: var(--green); box-shadow: 0 0 8px var(--green-glow); }
+  </style>
 </head>
 <body>
 
-  <h1>Login</h1>
+  <div class="logo">SILO GAMES</div>
 
-  <form id="loginForm">
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Password" required />
-    <button type="button" onclick="handleLogin()">Login</button>
-  </form>
+  <div class="card">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('login')">LOGIN</button>
+      <button class="tab-btn" onclick="switchTab('signup')">SIGN UP</button>
+    </div>
 
-  <p>Don't have an account? <a href="register.html">Sign up</a></p>
+    <!-- LOGIN -->
+    <div id="section-login" class="form-section active">
+      <div class="form-title">WELCOME BACK</div>
+      <div id="login-msg" class="msg"></div>
+      <div class="input-group">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="your@email.com">
+      </div>
+      <div class="input-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••">
+      </div>
+      <button class="btn-primary" onclick="handleEmailLogin()">LOGIN</button>
+      <div class="divider">OR</div>
+      <button class="btn-social" onclick="handleGoogleLogin()">
+        <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+        Continue with Google
+      </button>
+      <button class="btn-social" onclick="handleAppleLogin()">
+        <svg viewBox="0 0 814 1000" fill="white"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.3 133.4-317.1 264.5-317.1 70 0 128.1 46.4 171.1 46.4 41 0 106.8-49.3 185-49.3zM510.3 95.6c37.3-44.8 63.7-107.3 63.7-169.8 0-8.9-.6-17.8-2.2-25.4-60.4 2.2-132 40.2-175.3 91.3-33.9 38.6-65.4 101.1-65.4 164.9 0 9.5 1.6 19 2.2 22.1 3.8.6 10.2 1.6 16.5 1.6 54.2 0 121.4-36.5 160.5-84.7z"/></svg>
+        Continue with Apple
+      </button>
+    </div>
 
+    <!-- SIGNUP -->
+    <div id="section-signup" class="form-section">
+      <!-- Step 1 -->
+      <div id="signup-step1">
+        <div class="form-title">CREATE ACCOUNT</div>
+        <div class="steps">
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+        </div>
+        <div id="signup-msg" class="msg"></div>
+        <div class="input-group">
+          <label>Full Name</label>
+          <input type="text" id="signup-name" placeholder="Your name">
+        </div>
+        <div class="input-group">
+          <label>Email</label>
+          <input type="email" id="signup-email" placeholder="your@email.com">
+        </div>
+        <div class="input-group">
+          <label>Password</label>
+          <input type="password" id="signup-password" placeholder="Min 6 characters">
+        </div>
+        <button class="btn-primary" onclick="handleSendOTP()">SEND VERIFICATION CODE</button>
+        <div class="divider">OR</div>
+        <button class="btn-social" onclick="handleGoogleLogin()">
+          <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+          Sign up with Google
+        </button>
+      </div>
+      <!-- Step 2: OTP -->
+      <div id="signup-step2" style="display:none;">
+        <div class="form-title">VERIFY EMAIL</div>
+        <div class="steps">
+          <div class="step-dot active"></div>
+          <div class="step-dot active"></div>
+        </div>
+        <div id="otp-msg" class="msg"></div>
+        <p class="otp-info">A 6-digit code was sent to <span id="otp-email-display"></span>. Enter it below to confirm your account.</p>
+        <div class="input-group">
+          <label>Verification Code</label>
+          <input type="text" id="otp-input" placeholder="000000" maxlength="6">
+        </div>
+        <button class="btn-primary" onclick="handleVerifyOTP()">VERIFY & CREATE ACCOUNT</button>
+        <div class="back-link"><a href="#" onclick="backToStep1(event)">← Change email</a></div>
+      </div>
+    </div>
+
+    <div class="back-link" style="margin-top:1.5rem;">
+      <a href="landingpage.html">← Back to Origin Games</a>
+    </div>
+  </div>
+
+  <!-- Firebase (module, loads first) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAWhjNHUE2DQ4nj6Oka9ls4tK1lIHcqQqs",
+      authDomain: "origin-games-1066a.firebaseapp.com",
+      projectId: "origin-games-1066a",
+      storageBucket: "origin-games-1066a.firebasestorage.app",
+      messagingSenderId: "300977781000",
+      appId: "1:300977781000:web:899b2d0555d023532854bd"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const googleProvider = new GoogleAuthProvider();
+
+    window._auth = auth;
+    window._signInWithEmailAndPassword = signInWithEmailAndPassword;
+    window._createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+    window._signInWithPopup = signInWithPopup;
+    window._googleProvider = googleProvider;
+  </script>
+
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+  <!-- Login Logic -->
   <script src="login.js"></script>
 </body>
-</html
+</html>
